@@ -1,4 +1,4 @@
-# PyGraph - Zaawansowany Edytor Graficzny w Pythonie 
+# PyGraph - Edytor Graficzny w Pythonie 
 
 PyGraph to nowoczesna, wielowarstwowa aplikacja desktopowa do edycji grafiki, napisana w Pythonie. Wykorzystuje bibliotekę `customtkinter` do renderowania nowoczesnego interfejsu (Dark Mode) oraz zaawansowane możliwości bibliotek `Pillow` i `rembg` do obróbki obrazu i sztucznej inteligencji.
 
