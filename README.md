@@ -20,7 +20,7 @@ Aplikacja oferuje funkcjonalności znane z profesjonalnych programów graficznyc
   * Gotowe filtry: Czarno-biały, Rozmycie (Blur), Wyostrzanie, Negatyw, Płaskorzeźba, Detekcja krawędzi.
 * **Globalne kadrowanie:** Narzędzie do precyzyjnego (myszką lub co do piksela) przycinania całego płótna roboczego.
 * **Historia operacji:** Wbudowany system cofania zmian (Undo), zapamiętujący 8 ostatnich stanów projektu.
-* **Wielojęzyczność:** Aplikacja automatycznie wykrywa język systemu lub pozwala na ręczne przełączenie (Polski 🇵🇱 / Angielski 🇬🇧).
+* **Wielojęzyczność:** Aplikacja automatycznie wykrywa język systemu lub pozwala na ręczne przełączenie (Polski / Angielski).
 
 ## Skróty klawiaturowe (wzorowane na standardach branżowych)
 
@@ -31,11 +31,11 @@ Praca z PyGraph jest szybka i intuicyjna dzięki wbudowanym skrótom (działają
 * `Ctrl/Cmd + Z` - Cofnij (Undo)
 
 **Narzędzia (aktywowane jednym klawiszem):**
-* `V` - ✋ Przesuń (Move)
-* `B` - 🖌 Pędzel (Brush)
-* `T` - 🔤 Tekst (Text)
-* `R` - ⬜ Prostokąt (Rectangle)
-* `C` - ✂ Kadrowanie (Crop)
+* `V` - Przesuń (Move)
+* `B` - Pędzel (Brush)
+* `T` - Tekst (Text)
+* `R` - Prostokąt (Rectangle)
+* `C` - Kadrowanie (Crop)
 
 ## Wymagania i instalacja
 
