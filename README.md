@@ -43,7 +43,7 @@ Aby uruchomić aplikację lokalnie, upewnij się, że masz zainstalowanego Pytho
 
 1. Sklonuj repozytorium:
    ```bash
-   git clone https://github.com/daniel-kaliski/PyGraph.git)
+   git clone https://github.com/daniel-kaliski/PyGraph.git
    cd PyGraph
 2. Zainstaluj wymagane biblioteki:
    ```bash
