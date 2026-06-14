@@ -61,7 +61,8 @@ Pillow (PIL): Główny silnik przetwarzania siatki pikseli, manipulacji kanałem
 rembg: Narzędzie uczenia maszynowego do precyzyjnego usuwania tła.
 
 ## Zrzut ekranu
-<img width="1606" height="1245" alt="Zrzut ekranu 2026-06-13 o 07 54 30" src="https://github.com/user-attachments/assets/cc464336-1345-454a-855b-5431cced6434" />
+<img width="1512" height="1040" alt="Zrzut ekranu 2026-06-14 o 17 47 35" src="https://github.com/user-attachments/assets/30b1ac59-28a3-4f78-90c0-2494a252d709" />
+
 
 ## Licencja
 Ten projekt jest udostępniany na licencji GNU General Public License v3.0 (GPL-3.0). Szczegółowe informacje znajdują się w pliku LICENSE lub na stronie opensource.org/license/gpl-3.0.
