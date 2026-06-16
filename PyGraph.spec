@@ -1,13 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 from PyInstaller.utils.hooks import copy_metadata
+import sys
+import os
 
-datas = []
+datas = [('ikony', 'ikony')]
 binaries = []
 hiddenimports = []
-
-# KLUCZOWA POPRAWKA: Wymuszenie dodania folderu z ikonami do pliku .app
-datas += [('ikony', 'ikony')]
 
 datas += copy_metadata('pymatting')
 datas += copy_metadata('rembg')
@@ -33,6 +32,9 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
+# Dynamiczny wybór ikony dla kompilatora
+icon_file = 'icon.ico' if sys.platform == 'win32' else 'icon.icns'
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -45,10 +47,11 @@ exe = EXE(
     upx=True,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=False, 
+    argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=icon_file,
 )
 
 coll = COLLECT(
@@ -61,19 +64,20 @@ coll = COLLECT(
     name='PyGraph',
 )
 
-app = BUNDLE(
-    coll,
-    name='PyGraph.app',
-    icon='icon.icns',
-    bundle_identifier='com.danielkaliski.pygraph',
-    info_plist={
-        'NSHighResolutionCapable': 'True', 
-        'LSBackgroundOnly': 'False',
-        'CFBundleName': 'PyGraph',
-        'CFBundleDisplayName': 'PyGraph Editor',
-        'CFBundleVersion': '1.0.0',
-        'CFBundleShortVersionString': '1.0.0',
-        'NSRequiresAquaSystemAppearance': 'False',
-        'NSHumanReadableCopyright': 'Copyright © 2026 Daniel Kaliski. All rights reserved.',
-    },
-)
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        coll,
+        name='PyGraph.app',
+        icon='icon.icns',
+        bundle_identifier='com.danielkaliski.pygraph',
+        info_plist={
+            'NSHighResolutionCapable': 'True', 
+            'LSBackgroundOnly': 'False',
+            'CFBundleName': 'PyGraph',
+            'CFBundleDisplayName': 'PyGraph Editor',
+            'CFBundleVersion': '1.0.0',
+            'CFBundleShortVersionString': '1.0.0',
+            'NSRequiresAquaSystemAppearance': 'False',
+            'NSHumanReadableCopyright': 'Copyright © 2026 Daniel Kaliski. All rights reserved.',
+        },
+    )
