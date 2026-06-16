@@ -5,6 +5,13 @@ import sys
 import os
 
 datas = [('ikony', 'ikony')]
+
+# Zabezpieczenie dodające ikony fizycznie do folderu _internal
+if os.path.exists('icon.ico'):
+    datas.append(('icon.ico', '.'))
+if os.path.exists('icon.icns'):
+    datas.append(('icon.icns', '.'))
+
 binaries = []
 hiddenimports = []
 
@@ -32,8 +39,10 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
-# Dynamiczny wybór ikony dla kompilatora
+# Dynamiczne ładowanie głównej ikony programu
 icon_file = 'icon.ico' if sys.platform == 'win32' else 'icon.icns'
+if not os.path.exists(icon_file):
+    icon_file = None
 
 exe = EXE(
     pyz,
@@ -68,7 +77,7 @@ if sys.platform == 'darwin':
     app = BUNDLE(
         coll,
         name='PyGraph.app',
-        icon='icon.icns',
+        icon='icon.icns' if os.path.exists('icon.icns') else None,
         bundle_identifier='com.danielkaliski.pygraph',
         info_plist={
             'NSHighResolutionCapable': 'True', 

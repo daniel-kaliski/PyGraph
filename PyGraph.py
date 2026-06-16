@@ -263,7 +263,7 @@ class PyGraph(ctk.CTk):
         self.title(self.t["title"])
         self.minsize(1100, 650)
         
-        # Obejście dla Windowsa wymuszające użycie ikony na pasku zadań
+        # Integracja systemowej ikony w locie
         try:
             if sys.platform == "win32":
                 import ctypes
@@ -306,22 +306,21 @@ class PyGraph(ctk.CTk):
         
         self.klucze_filtrow = ["bw", "blur", "sharpen", "invert", "emboss", "edges", "contour", "smooth", "posterize", "solarize"]
 
-        # Dynamiczna szerokość panelu w zależności od systemu operacyjnego
-        szerokosc_lewego_panelu = 450 if sys.platform == "win32" else 330
-
-        self.grid_columnconfigure(0, minsize=szerokosc_lewego_panelu, weight=0)
+        self.grid_columnconfigure(0, weight=0) # Usunięto minsize - panel "oddycha" elastycznie
         self.grid_columnconfigure(1, weight=1) 
-        self.grid_columnconfigure(2, minsize=280, weight=0)
+        self.grid_columnconfigure(2, weight=0)
         self.grid_rowconfigure(0, weight=1)
         
-        self.panel_lewy = ctk.CTkFrame(self, corner_radius=0, width=szerokosc_lewego_panelu)
+        self.panel_lewy = ctk.CTkFrame(self, corner_radius=0)
         self.panel_lewy.grid(row=0, column=0, sticky="nsew")
-        self.panel_lewy.grid_propagate(False)
+        # Usunięto grid_propagate(False) by zapobiec ucinaniu
 
         self.btn_lang = ctk.CTkButton(self.panel_lewy, text="PL" if self.lang == "pl" else "EN", width=60, height=28, corner_radius=6, command=self.przelacz_jezyk, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_lang.pack(anchor="nw", padx=10, pady=10)
 
-        self.panel_narzedzi = ctk.CTkScrollableFrame(self.panel_lewy, fg_color="transparent")
+        # Dopasowanie szerokości wewnętrznego suwaka na sztywno
+        scroll_w = 420 if sys.platform == "win32" else 330
+        self.panel_narzedzi = ctk.CTkScrollableFrame(self.panel_lewy, fg_color="transparent", width=scroll_w)
         self.panel_narzedzi.pack(side="top", fill="both", expand=True)
 
         self.lbl_narzedzia = ctk.CTkLabel(self.panel_narzedzi, text=self.t["tools"], font=ctk.CTkFont(size=20, weight="bold"))
@@ -374,7 +373,7 @@ class PyGraph(ctk.CTk):
         
         ramka_grubosc = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_grubosc.pack(fill="x", pady=2)
-        self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=120, anchor="w")
+        self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=130, anchor="w")
         self.lbl_size.pack(side="left", padx=(0, 5))
         self.slider_size = ctk.CTkSlider(ramka_grubosc, from_=1, to=100, button_color="#888", button_hover_color="#bbb")
         self.slider_size.set(5)
@@ -394,7 +393,7 @@ class PyGraph(ctk.CTk):
 
         ramka_czcionka = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_czcionka.pack(fill="x", pady=2)
-        self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=120, anchor="w")
+        self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=130, anchor="w")
         self.lbl_font_size.pack(side="left", padx=(0, 5))
         self.slider_font_size = ctk.CTkSlider(ramka_czcionka, from_=10, to=300, button_color="#888", button_hover_color="#bbb", command=self.zmien_rozmiar_tekstu)
         self.slider_font_size.set(40)
@@ -407,7 +406,7 @@ class PyGraph(ctk.CTk):
         for nazwa, attr in [("brightness", "slider_brightness"), ("contrast", "slider_contrast"), ("saturation", "slider_saturation"), ("sharpness", "slider_sharpness"), ("scale", "slider_scale")]:
             ramka_suwaka = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
             ramka_suwaka.pack(fill="x", padx=15, pady=2)
-            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=120, anchor="w")
+            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=130, anchor="w")
             lbl.pack(side="left", padx=(0, 5))
             if nazwa in ["brightness", "contrast"]:
                 suwak = ctk.CTkSlider(ramka_suwaka, from_=0.1, to=2.0, command=self.podglad_suwakow)
@@ -464,9 +463,10 @@ class PyGraph(ctk.CTk):
         self.canvas.bind("<B1-Motion>", self.on_canvas_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_release)
 
-        self.panel_prawy = ctk.CTkFrame(self, corner_radius=0, width=280)
+        self.panel_prawy = ctk.CTkFrame(self, corner_radius=0)
         self.panel_prawy.grid(row=0, column=2, sticky="nsew")
-        self.panel_prawy.grid_propagate(False)
+
+        scroll_prawy_w = 280 if sys.platform == "win32" else 260
 
         self.lbl_layers_title = ctk.CTkLabel(self.panel_prawy, text=self.t["layers"], font=ctk.CTkFont(size=18, weight="bold"))
         self.lbl_layers_title.pack(pady=(15, 5))
@@ -506,7 +506,7 @@ class PyGraph(ctk.CTk):
         self.slider_opacity.set(1.0)
         self.slider_opacity.pack(pady=(0, 10), padx=20)
 
-        self.panel_listy_warstw = ctk.CTkScrollableFrame(self.panel_prawy, fg_color="transparent", corner_radius=6)
+        self.panel_listy_warstw = ctk.CTkScrollableFrame(self.panel_prawy, fg_color="transparent", corner_radius=6, width=scroll_prawy_w)
         self.panel_listy_warstw.pack(fill="both", expand=True, padx=10, pady=5)
 
         self.btn_zapisz = ctk.CTkButton(self.panel_prawy, text=self.t["save"], image=self.icons.get("save"), height=36, corner_radius=6, command=self.zapisz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
