@@ -6,6 +6,9 @@ datas = []
 binaries = []
 hiddenimports = []
 
+# KLUCZOWA POPRAWKA: Wymuszenie dodania folderu z ikonami do pliku .app
+datas += [('ikony', 'ikony')]
+
 datas += copy_metadata('pymatting')
 datas += copy_metadata('rembg')
 
@@ -42,7 +45,7 @@ exe = EXE(
     upx=True,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=True, 
+    argv_emulation=False, 
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,

@@ -13,68 +13,72 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox, colorchooser, simpledialog
-from PIL import Image, ImageTk, ImageOps, ImageFilter, ImageEnhance, ImageDraw, ImageFont
+import tkinter.font as tkfont
+from PIL import Image, ImageTk, ImageOps, ImageFilter, ImageEnhance, ImageDraw, ImageFont, ImageChops
 from rembg import remove
 import locale
 import sys
 import os
-import ctypes
-
-def wykryj_jezyk_systemu():
-    try:
-        if sys.platform == 'win32' and ctypes.windll.kernel32.GetUserDefaultUILanguage() == 1045: 
-            return "pl"
-        j, _ = locale.getlocale()
-        if j and 'pl' in j.lower(): 
-            return "pl"
-    except: 
-        pass
-    return "pl"
 
 TEXTS = {
     "pl": {
-        "title": "PyGraph - Edytor z Warstwami",
+        "title": "PyGraph - Image Editor",
         "tools": "Narzędzia",
-        "open": "⇧ Otwórz",
-        "undo": "⟲ Cofnij (Undo)",
+        "open": " Otwórz",
+        "undo": " Cofnij",
         "transform": "Transformacje:",
-        "rotate": "⟳ Obróć o 90°",
+        "rotate": " Obróć o 90°",
+        "flip_h": " Odbij w poziomie",
+        "flip_v": " Odbij w pionie",
         "adjust": "Dopasowanie warstwy:",
         "brightness": "Jasność",
         "contrast": "Kontrast",
         "saturation": "Nasycenie",
         "sharpness": "Ostrość",
         "scale": "Skala warstwy",
-        "apply_adj": "✓ Zastosuj dopasowanie",
         "interactive": "Narzędzia interaktywne:",
-        "move": "⬀ Przesuń",
-        "brush": "✎ Pędzel",
-        "text": "T Tekst",
-        "rectangle": "▭ Prostokąt",
-        "color": "■ Kolor",
-        "size": "Grubość pędzla",
+        "move": " Przesuń",
+        "brush": " Pędzel",
+        "fill": " Wypełnij",
+        "text": " Tekst",
+        "shape_rect": "Prostokąt",
+        "shape_ellipse": "Elipsa",
+        "shape_line": "Linia",
+        "shape_triangle": "Trójkąt",
+        "shape_rounded": "Zaokr. Prostokąt",
+        "color": " Kolor",
+        "size": "Grubość narzędzia",
         "font_size": "Wielkość tekstu",
         "effects": "Filtry (na warstwie):",
+        "effects_placeholder": "Wybierz filtr...",
         "bw": "Czarno-biały",
         "blur": "Rozmycie",
         "sharpen": "Wyostrz",
         "invert": "Negatyw",
         "emboss": "Płaskorzeźba",
         "edges": "Krawędzie",
-        "apply_filter": "✓ Zastosuj filtr",
-        "remove_bg": "✂ Usuń tło (AI)",
+        "contour": "Kontury",
+        "smooth": "Wygładzenie",
+        "posterize": "Plakatowanie",
+        "solarize": "Solaryzacja",
+        "remove_bg": " Usuń tło",
         "crop": "Kadrowanie (Cały obszar):",
-        "crop_on": "◩ Aktywuj ramkę",
-        "crop_off": "◪ Wyłącz ramkę",
-        "crop_apply": "✓ Zastosuj cięcie",
-        "save": "⭳ Eksportuj obraz",
+        "crop_on": " Aktywuj ramkę",
+        "crop_off": " Wyłącz ramkę",
+        "crop_apply": " Kadruj",
+        "save": " Eksportuj obraz",
         "layers": "WARSTWY",
-        "layer_add": "＋ Nowa",
-        "layer_insert": "⍐ Wstaw",
-        "layer_del": "✖ Usuń",
+        "layer_add": " Nowa",
+        "layer_insert": " Wstaw",
+        "layer_del": " Usuń",
+        "mask_add": " Maska",
+        "mask_del": " Maska",
+        "mask_edit": " Maska",
+        "img_edit": " Obraz",
+        "blend": "Tryb mieszania:",
         "rename_title": "Zmiana nazwy",
         "rename_prompt": "Podaj nową nazwę warstwy:",
-        "opacity": "Krycie warstwy:",
+        "opacity": "Krycie:",
         "bg_layer": "Tło",
         "new_layer": "Warstwa",
         "help": "Wczytaj obrazek, by rozpocząć projekt",
@@ -89,48 +93,63 @@ TEXTS = {
         "msg_err_title": "Błąd"
     },
     "en": {
-        "title": "PyGraph - Layered Editor",
+        "title": "PyGraph - Image Editor",
         "tools": "Tools",
-        "open": "⇧ Open",
-        "undo": "⟲ Undo",
+        "open": " Open",
+        "undo": " Undo",
         "transform": "Transformations:",
-        "rotate": "⟳ Rotate 90°",
+        "rotate": " Rotate 90°",
+        "flip_h": " Flip Horizontally",
+        "flip_v": " Flip Vertically",
         "adjust": "Layer Adjustments:",
         "brightness": "Brightness",
         "contrast": "Contrast",
         "saturation": "Saturation",
         "sharpness": "Sharpness",
         "scale": "Layer Scale",
-        "apply_adj": "✓ Apply Adjustments",
         "interactive": "Interactive Tools:",
-        "move": "⬀ Move",
-        "brush": "✎ Brush",
-        "text": "T Text",
-        "rectangle": "▭ Rect",
-        "color": "■ Color",
-        "size": "Brush Size",
+        "move": " Move",
+        "brush": " Brush",
+        "fill": " Fill",
+        "text": " Text",
+        "shape_rect": "Rectangle",
+        "shape_ellipse": "Ellipse",
+        "shape_line": "Line",
+        "shape_triangle": "Triangle",
+        "shape_rounded": "Rounded Rect",
+        "color": " Color",
+        "size": "Tool Size",
         "font_size": "Font Size",
-        "effects": "Filters (Active Layer):",
+        "effects": "Filters:",
+        "effects_placeholder": "Select filter...",
         "bw": "Black & White",
         "blur": "Blur",
         "sharpen": "Sharpen",
         "invert": "Invert",
         "emboss": "Emboss",
         "edges": "Find Edges",
-        "apply_filter": "✓ Apply Filter",
-        "remove_bg": "✂ Remove BG (AI)",
-        "crop": "Cropping (Canvas):",
-        "crop_on": "◩ Activate Frame",
-        "crop_off": "◪ Deactivate Frame",
-        "crop_apply": "✓ Apply Crop",
-        "save": "⭳ Export Image",
+        "contour": "Contour",
+        "smooth": "Smooth",
+        "posterize": "Posterize",
+        "solarize": "Solarize",
+        "remove_bg": " Remove BG",
+        "crop": "Cropping:",
+        "crop_on": " Activate Frame",
+        "crop_off": " Deactivate Frame",
+        "crop_apply": " Crop",
+        "save": " Export Image",
         "layers": "LAYERS",
-        "layer_add": "＋ Add",
-        "layer_insert": "⍐ Insert",
-        "layer_del": "✖ Delete",
+        "layer_add": " Add",
+        "layer_insert": " Insert",
+        "layer_del": " Delete",
+        "mask_add": " Mask",
+        "mask_del": " Mask",
+        "mask_edit": " Mask",
+        "img_edit": " Image",
+        "blend": "Blend Mode:",
         "rename_title": "Rename",
         "rename_prompt": "Enter new layer name:",
-        "opacity": "Layer Opacity:",
+        "opacity": "Opacity:",
         "bg_layer": "Background",
         "new_layer": "Layer",
         "help": "Load an image to start the project",
@@ -149,47 +168,130 @@ TEXTS = {
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
-class PyGraph(ctk.CTk):
+def blend_layers(base, top, mode):
+    if mode == "Normal": return Image.alpha_composite(base, top)
+    base_rgb = base.convert("RGB")
+    top_rgb = top.convert("RGB")
     
+    if mode == "Multiply": blended = ImageChops.multiply(base_rgb, top_rgb)
+    elif mode == "Screen": blended = ImageChops.screen(base_rgb, top_rgb)
+    elif mode == "Add": blended = ImageChops.add(base_rgb, top_rgb)
+    elif mode == "Difference": blended = ImageChops.difference(base_rgb, top_rgb)
+    elif mode == "Darken": blended = ImageChops.darker(base_rgb, top_rgb)
+    elif mode == "Lighten": blended = ImageChops.lighter(base_rgb, top_rgb)
+    else: blended = top_rgb
+
+    top_a = top.split()[3]
+    final_rgb = Image.composite(blended, base_rgb, top_a)
+    base_a = base.split()[3]
+    final_a = ImageChops.screen(base_a, top_a)
+    
+    res = final_rgb.convert("RGBA")
+    res.putalpha(final_a)
+    return res
+
+class PyGraph(ctk.CTk):
+
+    def pobierz_sciezke_zasobu(self, wzgledna_sciezka):
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+            sciezka_podstawowa = os.path.join(base_path, wzgledna_sciezka)
+            if not os.path.exists(sciezka_podstawowa) and sys.platform == "darwin":
+                sciezka_mac = os.path.join(os.path.dirname(base_path), "Resources", wzgledna_sciezka)
+                if os.path.exists(sciezka_mac): return sciezka_mac
+            return sciezka_podstawowa
+        else:
+            base_path = os.path.abspath(os.path.dirname(__file__))
+            return os.path.join(base_path, wzgledna_sciezka)
+
+    def zaladuj_ikony(self):
+        self.icons = {}
+        ikony_katalog = self.pobierz_sciezke_zasobu("ikony")
+        
+        if not os.path.exists(ikony_katalog):
+            self.after(500, lambda: messagebox.showwarning("Brak folderu ikon", f"Nie znaleziono folderu 'ikony' w ścieżce:\n{ikony_katalog}\n\nUpewnij się, że rozpakowałeś tam pobrane obrazy."))
+        
+        def load_icon(name, size=(18, 18)):
+            path = os.path.join(ikony_katalog, name)
+            if os.path.exists(path):
+                try:
+                    img = Image.open(path).convert("RGBA")
+                    r, g, b, a = img.split()
+                    r = r.point(lambda _: 255)
+                    g = g.point(lambda _: 255)
+                    b = b.point(lambda _: 255)
+                    white_img = Image.merge("RGBA", (r, g, b, a))
+                    return ctk.CTkImage(light_image=white_img, dark_image=white_img, size=size)
+                except Exception as e:
+                    print(f"Nie można załadować {name}: {e}")
+            return None
+
+        self.icons["open"] = load_icon("folder_open.png")
+        self.icons["undo"] = load_icon("undo.png")
+        self.icons["rotate"] = load_icon("rotate_90_degrees_cw.png")
+        self.icons["flip_h"] = load_icon("split_scene.png")
+        self.icons["flip_v"] = load_icon("split_scene_2.png")
+        self.icons["check"] = load_icon("check.png")
+        self.icons["move"] = load_icon("open_with.png") or load_icon("drag_pan.png")
+        self.icons["brush"] = load_icon("brush.png")
+        self.icons["fill"] = load_icon("format_color_fill.png")
+        self.icons["text"] = load_icon("text_fields.png")
+        self.icons["rect"] = load_icon("rectangle.png")
+        self.icons["color"] = load_icon("palette.png")
+        self.icons["magic"] = load_icon("cleaning_services.png")
+        self.icons["crop"] = load_icon("crop.png")
+        self.icons["save"] = load_icon("file_export.png") or load_icon("save.png")
+        self.icons["layer_add"] = load_icon("add.png")
+        self.icons["layer_insert"] = load_icon("add_photo_alternate.png")
+        self.icons["layer_del"] = load_icon("delete.png")
+        self.icons["up"] = load_icon("arrow_upward.png")
+        self.icons["down"] = load_icon("arrow_downward.png")
+        self.icons["vis_on"] = load_icon("visibility.png")
+        self.icons["vis_off"] = load_icon("visibility_off.png")
+        self.icons["edit"] = load_icon("edit.png")
+        self.icons["image"] = load_icon("image.png")
+        self.icons["mask"] = load_icon("layers.png")
+
     def __init__(self):
         super().__init__()
         
-        self.lang = wykryj_jezyk_systemu()
+        self.lang = self.wykryj_jezyk()
         self.t = TEXTS[self.lang]
+        
+        self.zaladuj_ikony()
 
         self.title(self.t["title"])
-        
-        try:
-            with open("pygraph_cfg.txt", "r") as f:
-                self.geometry(f.read().strip())
-        except:
-            self.geometry("1400x900")
-            
         self.minsize(1000, 650)
+        
+        if sys.platform == "win32":
+            self.after(0, lambda: self.state("zoomed"))
+        elif sys.platform == "darwin":
+            self.after(0, self.ustaw_pelen_ekran_mac)
+        else:
+            self.after(0, lambda: self.attributes("-zoomed", True))
+            
         self.protocol("WM_DELETE_WINDOW", self.zamykanie_okna)
 
         self.warstwy = [] 
         self.aktywna_warstwa = -1
         self.doc_size = None 
         self.skompilowany_obraz = None 
-        
         self.tk_obraz = None
         self.historia = []
         self.resize_timer = None
-        
         self.aktywne_narzedzie = None
         self.rect_coords = None
         self.akcja_myszy = None
         self.last_x = 0
         self.last_y = 0
-        
         self.current_color = "#ffffff" 
         self.draw_points = []
         self.temp_draw_id = None
         self.warstwa_podgladowa = None
         self.blokuj_podglad = False
-
-        self.klucze_filtrow = ["bw", "blur", "sharpen", "invert", "emboss", "edges"]
+        self.text_resize_started = False
+        
+        self.klucze_filtrow = ["bw", "blur", "sharpen", "invert", "emboss", "edges", "contour", "smooth", "posterize", "solarize"]
 
         self.grid_columnconfigure(0, minsize=350, weight=0)
         self.grid_columnconfigure(1, weight=1) 
@@ -209,17 +311,23 @@ class PyGraph(ctk.CTk):
         self.lbl_narzedzia = ctk.CTkLabel(self.panel_narzedzi, text=self.t["tools"], font=ctk.CTkFont(size=20, weight="bold"))
         self.lbl_narzedzia.pack(pady=(0, 10))
 
-        self.btn_otworz = ctk.CTkButton(self.panel_narzedzi, text=self.t["open"], height=32, corner_radius=6, command=self.otworz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_otworz = ctk.CTkButton(self.panel_narzedzi, text=self.t["open"], image=self.icons.get("open"), height=32, corner_radius=6, command=self.otworz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_otworz.pack(pady=5, padx=20, fill="x")
         
-        self.btn_cofnij = ctk.CTkButton(self.panel_narzedzi, text=self.t["undo"], height=32, corner_radius=6, fg_color="transparent", border_width=1, border_color="white", text_color="gray50", state="disabled", command=self.cofnij, hover_color="#333")
+        self.btn_cofnij = ctk.CTkButton(self.panel_narzedzi, text=self.t["undo"], image=self.icons.get("undo"), height=32, corner_radius=6, fg_color="transparent", border_width=1, border_color="white", text_color="gray50", state="disabled", command=self.cofnij, hover_color="#333")
         self.btn_cofnij.pack(pady=5, padx=20, fill="x")
 
         self.lbl_transform = ctk.CTkLabel(self.panel_narzedzi, text=self.t["transform"], font=ctk.CTkFont(weight="bold"))
         self.lbl_transform.pack(pady=(15, 0))
         
-        self.btn_obroc = ctk.CTkButton(self.panel_narzedzi, text=self.t["rotate"], height=32, corner_radius=6, command=self.obroc_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_obroc.pack(pady=5, padx=20, fill="x")
+        self.btn_obroc = ctk.CTkButton(self.panel_narzedzi, text=self.t["rotate"], image=self.icons.get("rotate"), height=32, corner_radius=6, command=self.obroc_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_obroc.pack(pady=(5,2), padx=20, fill="x")
+        
+        self.btn_flip_h = ctk.CTkButton(self.panel_narzedzi, text=self.t["flip_h"], image=self.icons.get("flip_h"), height=32, corner_radius=6, command=self.odbij_w_poziomie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_flip_h.pack(pady=2, padx=20, fill="x")
+        
+        self.btn_flip_v = ctk.CTkButton(self.panel_narzedzi, text=self.t["flip_v"], image=self.icons.get("flip_v"), height=32, corner_radius=6, command=self.odbij_w_pionie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_flip_v.pack(pady=(2,5), padx=20, fill="x")
 
         self.lbl_interactive = ctk.CTkLabel(self.panel_narzedzi, text=self.t["interactive"], font=ctk.CTkFont(weight="bold"))
         self.lbl_interactive.pack(pady=(20, 5))
@@ -229,23 +337,24 @@ class PyGraph(ctk.CTk):
         ramka_narzedzi.grid_columnconfigure(0, weight=1)
         ramka_narzedzi.grid_columnconfigure(1, weight=1)
         
-        self.btn_move = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["move"], 'move')
+        self.btn_move = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["move"], 'move', self.icons.get("move"))
         self.btn_move.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         
-        self.btn_brush = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["brush"], 'brush')
+        self.btn_brush = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["brush"], 'brush', self.icons.get("brush"))
         self.btn_brush.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
         
-        self.btn_text = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["text"], 'text')
-        self.btn_text.grid(row=1, column=0, padx=2, pady=2, sticky="ew")
+        self.btn_fill = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["fill"], 'fill', self.icons.get("fill"))
+        self.btn_fill.grid(row=1, column=0, padx=2, pady=2, sticky="ew")
         
-        self.btn_rect = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["rectangle"], 'rect')
-        self.btn_rect.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+        self.btn_color = ctk.CTkButton(ramka_narzedzi, text=self.t["color"], image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor, fg_color="transparent", border_width=1, border_color="white", text_color=self.current_color, hover_color="#333")
+        self.btn_color.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
+        
+        self.combo_shape = ctk.CTkComboBox(ramka_narzedzi, values=[self.t["shape_rect"], self.t["shape_ellipse"], self.t["shape_line"], self.t["shape_triangle"], self.t["shape_rounded"]], state="readonly", command=lambda e: self.ustaw_narzedzie('shape'), fg_color="#242424", border_color="gray50", text_color="white")
+        self.combo_shape.grid(row=2, column=0, columnspan=2, padx=2, pady=2, sticky="ew")
+        self.combo_shape.set(self.t["shape_rect"])
 
         ramka_opcji = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
-        ramka_opcji.pack(pady=10, padx=20, fill="x")
-        
-        self.btn_color = ctk.CTkButton(ramka_opcji, text=self.t["color"], height=30, corner_radius=6, command=self.wybierz_kolor, fg_color="transparent", border_width=1, border_color="white", text_color=self.current_color, hover_color="#333")
-        self.btn_color.pack(side="top", fill="x", pady=(0, 10))
+        ramka_opcji.pack(pady=10, padx=15, fill="x")
         
         ramka_grubosc = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_grubosc.pack(fill="x", pady=2)
@@ -254,52 +363,64 @@ class PyGraph(ctk.CTk):
         self.slider_size = ctk.CTkSlider(ramka_grubosc, from_=1, to=100, button_color="#888", button_hover_color="#bbb")
         self.slider_size.set(5)
         self.slider_size.pack(side="right", expand=True, fill="x")
+        
+        ramka_czcionka_rodzina = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
+        ramka_czcionka_rodzina.pack(fill="x", pady=2)
+        self.btn_text = self.stworz_przycisk_narzedzia(ramka_czcionka_rodzina, self.t["text"], 'text', self.icons.get("text"))
+        self.btn_text.pack(side="left", padx=(0, 5))
+        
+        czcionki_systemowe = sorted([f for f in tkfont.families() if not f.startswith('@')])
+        if not czcionki_systemowe: czcionki_systemowe = ["Arial"]
+        
+        self.combo_font = ctk.CTkComboBox(ramka_czcionka_rodzina, values=czcionki_systemowe, state="readonly", command=self.zmien_czcionke_tekstu, fg_color="#242424", border_color="gray50", text_color="white")
+        self.combo_font.pack(side="right", expand=True, fill="x")
+        self.combo_font.set("Arial" if "Arial" in czcionki_systemowe else czcionki_systemowe[0])
 
         ramka_czcionka = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_czcionka.pack(fill="x", pady=2)
         self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=100, anchor="w")
         self.lbl_font_size.pack(side="left", padx=(0, 5))
-        self.slider_font_size = ctk.CTkSlider(ramka_czcionka, from_=10, to=300, button_color="#888", button_hover_color="#bbb")
+        self.slider_font_size = ctk.CTkSlider(ramka_czcionka, from_=10, to=300, button_color="#888", button_hover_color="#bbb", command=self.zmien_rozmiar_tekstu)
         self.slider_font_size.set(40)
         self.slider_font_size.pack(side="right", expand=True, fill="x")
+        self.slider_font_size.bind("<ButtonRelease-1>", lambda e: self.zatwierdz_rozmiar_tekstu())
 
         self.lbl_adjust = ctk.CTkLabel(self.panel_narzedzi, text=self.t["adjust"], font=ctk.CTkFont(weight="bold"))
         self.lbl_adjust.pack(pady=(20, 0))
 
         for nazwa, attr in [("brightness", "slider_brightness"), ("contrast", "slider_contrast"), ("saturation", "slider_saturation"), ("sharpness", "slider_sharpness"), ("scale", "slider_scale")]:
-            lbl = ctk.CTkLabel(self.panel_narzedzi, text=self.t[nazwa])
-            lbl.pack(pady=(5, 0))
+            ramka_suwaka = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
+            ramka_suwaka.pack(fill="x", padx=15, pady=2)
+            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=100, anchor="w")
+            lbl.pack(side="left", padx=(0, 5))
             if nazwa in ["brightness", "contrast"]:
-                suwak = ctk.CTkSlider(self.panel_narzedzi, from_=0.1, to=2.0, command=self.podglad_suwakow)
+                suwak = ctk.CTkSlider(ramka_suwaka, from_=0.1, to=2.0, command=self.podglad_suwakow)
             elif nazwa == "scale":
-                suwak = ctk.CTkSlider(self.panel_narzedzi, from_=0.1, to=3.0, command=self.podglad_suwakow)
+                suwak = ctk.CTkSlider(ramka_suwaka, from_=0.1, to=3.0, command=self.podglad_suwakow)
             else:
-                suwak = ctk.CTkSlider(self.panel_narzedzi, from_=0.0, to=3.0, command=self.podglad_suwakow)
+                suwak = ctk.CTkSlider(ramka_suwaka, from_=0.0, to=3.0, command=self.podglad_suwakow)
             suwak.set(1.0)
-            suwak.pack(pady=0, padx=20)
+            suwak.pack(side="right", expand=True, fill="x")
+            
+            suwak.bind("<ButtonRelease-1>", lambda e: self.zatwierdz_podglad())
+            
             setattr(self, attr, suwak)
             setattr(self, f"lbl_{nazwa}", lbl)
-
-        self.btn_apply_adj = ctk.CTkButton(self.panel_narzedzi, text=self.t["apply_adj"], height=32, corner_radius=6, command=self.zastosuj_suwaki, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_apply_adj.pack(pady=(15, 0), padx=20, fill="x")
 
         self.lbl_efekty = ctk.CTkLabel(self.panel_narzedzi, text=self.t["effects"], font=ctk.CTkFont(weight="bold"))
         self.lbl_efekty.pack(pady=(20, 5))
         
-        self.combo_filtry = ctk.CTkComboBox(self.panel_narzedzi, values=[self.t[k] for k in self.klucze_filtrow], state="readonly", corner_radius=6, fg_color="#242424", border_color="white", text_color="white")
+        self.combo_filtry = ctk.CTkComboBox(self.panel_narzedzi, values=[self.t[k] for k in self.klucze_filtrow], state="readonly", corner_radius=6, fg_color="#242424", border_color="white", text_color="white", command=self.zastosuj_wybrany_filtr)
         self.combo_filtry.pack(pady=(5,10), padx=20, fill="x")
-        self.combo_filtry.set(self.t["bw"])
+        self.combo_filtry.set(self.t["effects_placeholder"])
         
-        self.btn_zastosuj_filtr = ctk.CTkButton(self.panel_narzedzi, text=self.t["apply_filter"], height=32, corner_radius=6, command=self.zastosuj_wybrany_filtr, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_zastosuj_filtr.pack(pady=(0, 10), padx=20, fill="x")
-
-        self.btn_rembg = ctk.CTkButton(self.panel_narzedzi, text=self.t["remove_bg"], height=32, corner_radius=6, command=self.usun_tlo, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_rembg = ctk.CTkButton(self.panel_narzedzi, text=self.t["remove_bg"], image=self.icons.get("magic"), height=32, corner_radius=6, command=self.usun_tlo, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_rembg.pack(pady=(10, 5), padx=20, fill="x")
 
         self.lbl_kadrowanie = ctk.CTkLabel(self.panel_narzedzi, text=self.t["crop"], font=ctk.CTkFont(weight="bold"))
         self.lbl_kadrowanie.pack(pady=(15, 0))
         
-        self.btn_crop = self.stworz_przycisk_narzedzia(self.panel_narzedzi, self.t["crop_on"], 'crop')
+        self.btn_crop = self.stworz_przycisk_narzedzia(self.panel_narzedzi, self.t["crop_on"], 'crop', self.icons.get("crop"))
         self.btn_crop.pack(pady=(5,5), padx=20, fill="x")
         
         self.ramka_px = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
@@ -312,7 +433,7 @@ class PyGraph(ctk.CTk):
         self.entry_w, self.lbl_w = self.stworz_pole_px(self.ramka_px, self.t["width"], 1, 0)
         self.entry_h, self.lbl_h = self.stworz_pole_px(self.ramka_px, self.t["height"], 1, 1)
         
-        self.btn_dokladne_crop = ctk.CTkButton(self.panel_narzedzi, text=self.t["crop_apply"], height=32, corner_radius=6, command=self.zastosuj_ciecie_z_pol, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_dokladne_crop = ctk.CTkButton(self.panel_narzedzi, text=self.t["crop_apply"], image=self.icons.get("check"), height=32, corner_radius=6, command=self.wykonaj_kadrowanie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_dokladne_crop.pack(pady=5, padx=20, fill="x")
 
         self.panel_obrazu = ctk.CTkFrame(self)
@@ -332,37 +453,47 @@ class PyGraph(ctk.CTk):
         self.panel_prawy.grid_propagate(False)
 
         self.lbl_layers_title = ctk.CTkLabel(self.panel_prawy, text=self.t["layers"], font=ctk.CTkFont(size=18, weight="bold"))
-        self.lbl_layers_title.pack(pady=(20, 10))
+        self.lbl_layers_title.pack(pady=(15, 5))
 
         ramka_kontrolek_warstw = ctk.CTkFrame(self.panel_prawy, fg_color="transparent")
-        ramka_kontrolek_warstw.pack(fill="x", padx=10, pady=5)
+        ramka_kontrolek_warstw.pack(fill="x", padx=10, pady=2)
         
-        self.btn_add_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_add"], width=65, height=28, corner_radius=6, command=self.dodaj_pusta_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_add_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_add"], image=self.icons.get("layer_add"), width=65, height=28, corner_radius=6, command=self.dodaj_pusta_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_add_layer.pack(side="left", padx=2, expand=True)
-        
-        self.btn_insert_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_insert"], width=65, height=28, corner_radius=6, command=self.wstaw_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_insert_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_insert"], image=self.icons.get("layer_insert"), width=65, height=28, corner_radius=6, command=self.wstaw_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_insert_layer.pack(side="left", padx=2, expand=True)
-        
-        self.btn_del_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_del"], width=65, height=28, corner_radius=6, command=self.usun_aktywna_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_del_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_del"], image=self.icons.get("layer_del"), width=65, height=28, corner_radius=6, command=self.usun_aktywna_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_del_layer.pack(side="left", padx=2, expand=True)
 
+        ramka_maski = ctk.CTkFrame(self.panel_prawy, fg_color="transparent")
+        ramka_maski.pack(fill="x", padx=10, pady=2)
+        self.btn_add_mask = ctk.CTkButton(ramka_maski, text=self.t["mask_add"], image=self.icons.get("layer_add"), width=65, height=28, corner_radius=6, command=self.dodaj_maske, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_add_mask.pack(side="left", padx=2, expand=True)
+        self.btn_del_mask = ctk.CTkButton(ramka_maski, text=self.t["mask_del"], image=self.icons.get("layer_del"), width=65, height=28, corner_radius=6, command=self.usun_maske, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_del_mask.pack(side="left", padx=2, expand=True)
+
         ramka_strzalek = ctk.CTkFrame(self.panel_prawy, fg_color="transparent")
-        ramka_strzalek.pack(pady=0)
-        self.btn_up_layer = ctk.CTkButton(ramka_strzalek, text="⏶", width=60, height=24, corner_radius=6, command=lambda: self.przesun_warstwe(-1), fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        ramka_strzalek.pack(pady=5)
+        self.btn_up_layer = ctk.CTkButton(ramka_strzalek, text="", image=self.icons.get("up"), width=60, height=24, corner_radius=6, command=lambda: self.przesun_warstwe(-1), fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_up_layer.pack(side="left", padx=5)
-        self.btn_down_layer = ctk.CTkButton(ramka_strzalek, text="⏷", width=60, height=24, corner_radius=6, command=lambda: self.przesun_warstwe(1), fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_down_layer = ctk.CTkButton(ramka_strzalek, text="", image=self.icons.get("down"), width=60, height=24, corner_radius=6, command=lambda: self.przesun_warstwe(1), fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_down_layer.pack(side="left", padx=5)
 
+        self.lbl_blend = ctk.CTkLabel(self.panel_prawy, text=self.t["blend"])
+        self.lbl_blend.pack(pady=(5, 0))
+        self.combo_blend = ctk.CTkComboBox(self.panel_prawy, values=["Normal", "Multiply", "Screen", "Add", "Difference", "Darken", "Lighten"], state="readonly", corner_radius=6, fg_color="#242424", border_color="white", text_color="white", command=self.zmien_tryb_mieszania)
+        self.combo_blend.pack(pady=(0, 5), padx=20, fill="x")
+
         self.lbl_opacity = ctk.CTkLabel(self.panel_prawy, text=self.t["opacity"])
-        self.lbl_opacity.pack(pady=(15, 0))
+        self.lbl_opacity.pack(pady=(5, 0))
         self.slider_opacity = ctk.CTkSlider(self.panel_prawy, from_=0.0, to=1.0, command=self.zmien_krycie_warstwy, button_color="#888", button_hover_color="#bbb")
         self.slider_opacity.set(1.0)
-        self.slider_opacity.pack(pady=(5, 15), padx=20)
+        self.slider_opacity.pack(pady=(0, 10), padx=20)
 
         self.panel_listy_warstw = ctk.CTkScrollableFrame(self.panel_prawy, fg_color="transparent", corner_radius=6)
         self.panel_listy_warstw.pack(fill="both", expand=True, padx=10, pady=5)
 
-        self.btn_zapisz = ctk.CTkButton(self.panel_prawy, text=self.t["save"], height=36, corner_radius=6, command=self.zapisz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_zapisz = ctk.CTkButton(self.panel_prawy, text=self.t["save"], image=self.icons.get("save"), height=36, corner_radius=6, command=self.zapisz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_zapisz.pack(side="bottom", pady=(10, 20), padx=20, fill="x")
 
         self.bind("<Control-z>", lambda e: self.cofnij())
@@ -373,21 +504,41 @@ class PyGraph(ctk.CTk):
         self.bind("<Command-o>", lambda e: self.otworz_obraz()) 
         self.bind("<Key>", self.obsloz_skroty_narzedzi)
 
+    def wykryj_jezyk(self):
+        try:
+            if sys.platform == 'win32': 
+                import ctypes
+                if ctypes.windll.kernel32.GetUserDefaultUILanguage() == 1045: return "pl"
+            else:
+                j, _ = locale.getlocale()
+                if j and 'pl' in j.lower(): return "pl"
+        except: 
+            pass
+        return "pl"
+
+    def ustaw_pelen_ekran_mac(self):
+        w = self.winfo_screenwidth()
+        h = self.winfo_screenheight()
+        self.geometry(f"{w}x{h}+0+0")
+
+    def get_draw_color(self):
+        kolor_hex = self.current_color
+        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('edycja_maski'):
+            r, g, b = tuple(int(kolor_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            gray = int(r * 0.299 + g * 0.587 + b * 0.114)
+            return f"#{gray:02x}{gray:02x}{gray:02x}"
+        return kolor_hex
+
     def stworz_pole_px(self, rodzic, tekst, rzad, kolumna):
         ramka = ctk.CTkFrame(rodzic, fg_color="transparent")
         ramka.grid(row=rzad, column=kolumna, padx=2, pady=2, sticky="ew")
         lbl = ctk.CTkLabel(ramka, text=tekst, font=("Arial", 11))
         lbl.pack(side="left")
-        entry = ctk.CTkEntry(ramka, height=28, corner_radius=4, font=("Arial", 11))
+        entry = ctk.CTkEntry(ramka, height=28, width=40, corner_radius=4, font=("Arial", 11))
         entry.pack(side="left", padx=2, expand=True, fill="x")
         return entry, lbl
 
     def zamykanie_okna(self):
-        try:
-            with open("pygraph_cfg.txt", "w") as f:
-                f.write(self.geometry())
-        except:
-            pass
         self.destroy()
 
     def _update_text(self, widget_name, text_key):
@@ -399,12 +550,19 @@ class PyGraph(ctk.CTk):
 
     def przelacz_jezyk(self):
         stary_jezyk = self.lang
-        obecny_wybor = self.combo_filtry.get()
-        wybrany_klucz = "bw"
+        obecny_wybor_filtra = self.combo_filtry.get()
+        wybrany_klucz_filtra = "effects_placeholder"
         for k in self.klucze_filtrow:
-            if TEXTS[stary_jezyk][k] == obecny_wybor:
-                wybrany_klucz = k
+            if TEXTS[stary_jezyk][k] == obecny_wybor_filtra:
+                wybrany_klucz_filtra = k
                 break
+                
+        obecny_wybor_ksztaltu = self.combo_shape.get()
+        wybrany_klucz_ksztaltu = "shape_rect"
+        if obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_ellipse"]: wybrany_klucz_ksztaltu = "shape_ellipse"
+        elif obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_line"]: wybrany_klucz_ksztaltu = "shape_line"
+        elif obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_triangle"]: wybrany_klucz_ksztaltu = "shape_triangle"
+        elif obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_rounded"]: wybrany_klucz_ksztaltu = "shape_rounded"
 
         self.lang = "en" if self.lang == "pl" else "pl"
         self.t = TEXTS[self.lang]
@@ -417,23 +575,23 @@ class PyGraph(ctk.CTk):
         self._update_text("btn_cofnij", "undo")
         self._update_text("lbl_transform", "transform")
         self._update_text("btn_obroc", "rotate")
+        self._update_text("btn_flip_h", "flip_h")
+        self._update_text("btn_flip_v", "flip_v")
         self._update_text("lbl_adjust", "adjust")
         self._update_text("lbl_brightness", "brightness")
         self._update_text("lbl_contrast", "contrast")
         self._update_text("lbl_saturation", "saturation")
         self._update_text("lbl_sharpness", "sharpness")
         self._update_text("lbl_scale", "scale")
-        self._update_text("btn_apply_adj", "apply_adj")
         self._update_text("lbl_interactive", "interactive")
         self._update_text("btn_move", "move")
         self._update_text("btn_brush", "brush")
+        self._update_text("btn_fill", "fill")
         self._update_text("btn_text", "text")
-        self._update_text("btn_rect", "rectangle")
         self._update_text("btn_color", "color")
         self._update_text("lbl_size", "size")
         self._update_text("lbl_font_size", "font_size")
         self._update_text("lbl_efekty", "effects")
-        self._update_text("btn_zastosuj_filtr", "apply_filter")
         self._update_text("btn_rembg", "remove_bg")
         self._update_text("lbl_kadrowanie", "crop")
         self._update_text("lbl_w", "width")
@@ -443,6 +601,9 @@ class PyGraph(ctk.CTk):
         self._update_text("btn_add_layer", "layer_add")
         self._update_text("btn_insert_layer", "layer_insert")
         self._update_text("btn_del_layer", "layer_del")
+        self._update_text("btn_add_mask", "mask_add")
+        self._update_text("btn_del_mask", "mask_del")
+        self._update_text("lbl_blend", "blend")
         self._update_text("lbl_opacity", "opacity")
         self._update_text("btn_zapisz", "save")
         self._update_text("text_label", "help")
@@ -452,11 +613,17 @@ class PyGraph(ctk.CTk):
         else:
             self._update_text("btn_crop", "crop_on")
             
-        nowe_wartosci = [self.t[k] for k in self.klucze_filtrow]
-        self.combo_filtry.configure(values=nowe_wartosci)
-        self.combo_filtry.set(self.t[wybrany_klucz])
+        self.combo_filtry.configure(values=[self.t[k] for k in self.klucze_filtrow])
+        if wybrany_klucz_filtra in self.klucze_filtrow:
+            self.combo_filtry.set(self.t[wybrany_klucz_filtra])
+        else:
+            self.combo_filtry.set(self.t["effects_placeholder"])
+            
+        self.combo_shape.configure(values=[self.t["shape_rect"], self.t["shape_ellipse"], self.t["shape_line"], self.t["shape_triangle"], self.t["shape_rounded"]])
+        self.combo_shape.set(self.t[wybrany_klucz_ksztaltu])
         
         self.zaktualizuj_styl_narzedzi()
+        self.odswiez_panel_warstw()
 
         if not self.warstwy: 
             self.canvas.delete("all")
@@ -470,11 +637,11 @@ class PyGraph(ctk.CTk):
         if char == 'v': self.ustaw_narzedzie('move')
         elif char == 'b': self.ustaw_narzedzie('brush')
         elif char == 't': self.ustaw_narzedzie('text')
-        elif char == 'r': self.ustaw_narzedzie('rect')
         elif char == 'c': self.ustaw_narzedzie('crop')
+        elif char == 'f': self.ustaw_narzedzie('fill')
 
-    def stworz_przycisk_narzedzia(self, rodzic, tekst, wartosc):
-        return ctk.CTkButton(rodzic, text=tekst, height=32, width=50, corner_radius=6, 
+    def stworz_przycisk_narzedzia(self, rodzic, tekst, wartosc, ikona=None):
+        return ctk.CTkButton(rodzic, text=tekst, image=ikona, height=32, width=50, corner_radius=6, 
                              fg_color="transparent", border_width=1, border_color="white", 
                              text_color="white", hover_color="#333", command=lambda: self.ustaw_narzedzie(wartosc))
 
@@ -485,7 +652,12 @@ class PyGraph(ctk.CTk):
         self.btn_move.configure(**(act if self.aktywne_narzedzie == 'move' else inact))
         self.btn_brush.configure(**(act if self.aktywne_narzedzie == 'brush' else inact))
         self.btn_text.configure(**(act if self.aktywne_narzedzie == 'text' else inact))
-        self.btn_rect.configure(**(act if self.aktywne_narzedzie == 'rect' else inact))
+        self.btn_fill.configure(**(act if self.aktywne_narzedzie == 'fill' else inact))
+        
+        if self.aktywne_narzedzie == 'shape':
+            self.combo_shape.configure(border_color="white", border_width=2)
+        else:
+            self.combo_shape.configure(border_color="gray50", border_width=1)
         
         if self.aktywne_narzedzie == 'crop':
             self.btn_crop.configure(text=self.t["crop_off"], **act)
@@ -497,6 +669,12 @@ class PyGraph(ctk.CTk):
         if kolor: 
             self.current_color = kolor
             self.btn_color.configure(text_color=kolor)
+            if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
+                self.zapisz_stan_do_historii()
+                fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+                self.warstwy[self.aktywna_warstwa]['text_color'] = fill_color
+                self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+                self.komponuj_i_wyswietl()
 
     def aktualizuj_wymiary_w_polach(self, x=0, y=0, w=0, h=0):
         for entry, val in [(self.entry_x, str(x)), (self.entry_y, str(y)), (self.entry_w, str(w)), (self.entry_h, str(h))]:
@@ -517,7 +695,7 @@ class PyGraph(ctk.CTk):
                 self.btn_cofnij.configure(state="disabled", fg_color="transparent", text_color="gray50", border_color="white")
                 
                 nazwa = os.path.basename(sciezka)[:15]
-                self.dodaj_warstwe(img, nazwa)
+                self.dodaj_warstwe(img, nazwa, 0, 0)
                 self.ustaw_aktywna_warstwe(0)
                 
             except Exception as e:
@@ -538,21 +716,18 @@ class PyGraph(ctk.CTk):
                 self.zatwierdz_podglad()
                 self.zapisz_stan_do_historii()
                 
-                pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
                 x = (self.doc_size[0] - img.width) // 2
                 y = (self.doc_size[1] - img.height) // 2
-                pusta.paste(img, (x, y))
-                
                 nazwa = os.path.basename(sciezka)[:12]
                 
                 idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
-                self.warstwy.insert(idx, {'nazwa': nazwa, 'obraz': pusta, 'widoczna': True, 'krycie': 1.0})
+                self.warstwy.insert(idx, {'nazwa': nazwa, 'obraz': img, 'widoczna': True, 'krycie': 1.0, 'tryb': 'Normal', 'maska': None, 'edycja_maski': False, 'offset_x': x, 'offset_y': y})
                 self.ustaw_aktywna_warstwe(idx)
             except Exception as e:
                 messagebox.showerror(self.t["msg_err_title"], f"{self.t['err_open']} {e}")
 
-    def dodaj_warstwe(self, obraz, nazwa):
-        self.warstwy.append({'nazwa': nazwa, 'obraz': obraz, 'widoczna': True, 'krycie': 1.0})
+    def dodaj_warstwe(self, obraz, nazwa, off_x=0, off_y=0):
+        self.warstwy.append({'nazwa': nazwa, 'obraz': obraz, 'widoczna': True, 'krycie': 1.0, 'tryb': 'Normal', 'maska': None, 'edycja_maski': False, 'offset_x': off_x, 'offset_y': off_y})
         self.odswiez_panel_warstw()
         self.komponuj_i_wyswietl()
 
@@ -564,7 +739,7 @@ class PyGraph(ctk.CTk):
         nazwa = f"{self.t['new_layer']} {len(self.warstwy)}"
         
         idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
-        self.warstwy.insert(idx, {'nazwa': nazwa, 'obraz': pusta, 'widoczna': True, 'krycie': 1.0})
+        self.warstwy.insert(idx, {'nazwa': nazwa, 'obraz': pusta, 'widoczna': True, 'krycie': 1.0, 'tryb': 'Normal', 'maska': None, 'edycja_maski': False, 'offset_x': 0, 'offset_y': 0})
         self.ustaw_aktywna_warstwe(idx)
 
     def usun_aktywna_warstwe(self):
@@ -573,6 +748,35 @@ class PyGraph(ctk.CTk):
         self.zapisz_stan_do_historii()
         del self.warstwy[self.aktywna_warstwa]
         self.ustaw_aktywna_warstwe(max(0, self.aktywna_warstwa - 1))
+
+    def dodaj_maske(self):
+        if self.aktywna_warstwa == -1: return
+        w = self.warstwy[self.aktywna_warstwa]
+        if w.get('maska') is None:
+            self.zatwierdz_podglad()
+            self.zapisz_stan_do_historii()
+            w['maska'] = Image.new("L", w['obraz'].size, 255)
+            w['edycja_maski'] = True
+            self.odswiez_panel_warstw()
+            self.komponuj_i_wyswietl()
+
+    def usun_maske(self):
+        if self.aktywna_warstwa == -1: return
+        w = self.warstwy[self.aktywna_warstwa]
+        if w.get('maska') is not None:
+            self.zatwierdz_podglad()
+            self.zapisz_stan_do_historii()
+            w['maska'] = None
+            w['edycja_maski'] = False
+            self.odswiez_panel_warstw()
+            self.komponuj_i_wyswietl()
+
+    def przelacz_edycje_maski(self, idx):
+        self.zatwierdz_podglad()
+        w = self.warstwy[idx]
+        if w.get('maska') is not None:
+            w['edycja_maski'] = not w.get('edycja_maski', False)
+            self.odswiez_panel_warstw()
 
     def przesun_warstwe(self, kierunek):
         idx = self.aktywna_warstwa
@@ -588,6 +792,13 @@ class PyGraph(ctk.CTk):
         self.aktywna_warstwa = index
         if 0 <= index < len(self.warstwy):
             self.slider_opacity.set(self.warstwy[index]['krycie'])
+            self.combo_blend.set(self.warstwy[index].get('tryb', 'Normal'))
+            
+            if self.warstwy[index].get('is_text'):
+                self.slider_font_size.set(self.warstwy[index]['text_size'])
+                if 'text_font' in self.warstwy[index]:
+                    self.combo_font.set(self.warstwy[index]['text_font'])
+                
         self.odswiez_panel_warstw()
         self.resetuj_suwaki()
         self.komponuj_i_wyswietl()
@@ -602,6 +813,11 @@ class PyGraph(ctk.CTk):
     def zmien_krycie_warstwy(self, wartosc):
         if self.aktywna_warstwa != -1:
             self.warstwy[self.aktywna_warstwa]['krycie'] = wartosc
+            self.komponuj_i_wyswietl()
+
+    def zmien_tryb_mieszania(self, wartosc):
+        if self.aktywna_warstwa != -1:
+            self.warstwy[self.aktywna_warstwa]['tryb'] = wartosc
             self.komponuj_i_wyswietl()
 
     def przelacz_widocznosc(self, index):
@@ -623,14 +839,20 @@ class PyGraph(ctk.CTk):
             is_active = (i == self.aktywna_warstwa)
             bw = 2 if is_active else 1
             
-            ikona = "👁" if w['widoczna'] else "✖"
-            btn_vis = ctk.CTkButton(ramka, text=ikona, width=30, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333", command=lambda idx=i: self.przelacz_widocznosc(idx))
+            ikona = self.icons.get("vis_on") if w['widoczna'] else self.icons.get("vis_off")
+            btn_vis = ctk.CTkButton(ramka, text="", image=ikona, width=30, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333", command=lambda idx=i: self.przelacz_widocznosc(idx))
             btn_vis.pack(side="left", padx=5, pady=5)
             
             btn_name = ctk.CTkButton(ramka, text=w['nazwa'], fg_color="transparent", border_width=bw, border_color="white", text_color="white", hover_color="#333", anchor="w", command=lambda idx=i: self.ustaw_aktywna_warstwe(idx))
             btn_name.pack(side="left", fill="x", expand=True, padx=5, pady=5)
             
-            btn_rename = ctk.CTkButton(ramka, text="✎", width=25, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333", command=lambda idx=i: self.zmien_nazwe_warstwy(idx))
+            if w.get('maska') is not None:
+                tekst_maski = self.t["mask_edit"] if w.get('edycja_maski') else self.t["img_edit"]
+                ikona_maski = self.icons.get("mask") if w.get('edycja_maski') else self.icons.get("image")
+                btn_mask_toggle = ctk.CTkButton(ramka, text=tekst_maski, image=ikona_maski, width=50, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333", command=lambda idx=i: self.przelacz_edycje_maski(idx))
+                btn_mask_toggle.pack(side="left", padx=2, pady=5)
+            
+            btn_rename = ctk.CTkButton(ramka, text="", image=self.icons.get("edit"), width=25, fg_color="transparent", border_width=1, border_color="white", hover_color="#333", command=lambda idx=i: self.zmien_nazwe_warstwy(idx))
             btn_rename.pack(side="right", padx=2, pady=5)
 
     def komponuj_i_wyswietl(self):
@@ -646,13 +868,25 @@ class PyGraph(ctk.CTk):
                 if i == self.aktywna_warstwa and self.warstwa_podgladowa is not None:
                     img = self.warstwa_podgladowa
                 
+                img = img.copy()
+                
+                temp = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
+                temp.paste(img, (w.get('offset_x', 0), w.get('offset_y', 0)))
+                
                 if w['krycie'] < 1.0:
-                    img = img.copy()
-                    alpha = img.split()[3]
+                    alpha = temp.split()[3]
                     alpha = alpha.point(lambda p: int(p * w['krycie']))
-                    img.putalpha(alpha)
+                    temp.putalpha(alpha)
                     
-                kompozyt = Image.alpha_composite(kompozyt, img)
+                if w.get('maska') is not None:
+                    m_temp = Image.new("L", self.doc_size, 0)
+                    m_temp.paste(w['maska'], (w.get('offset_x', 0), w.get('offset_y', 0)))
+                    alpha = temp.split()[3]
+                    nowa_maska = ImageChops.multiply(alpha, m_temp)
+                    temp.putalpha(nowa_maska)
+                    
+                tryb = w.get('tryb', 'Normal')
+                kompozyt = blend_layers(kompozyt, temp, tryb)
 
         self.skompilowany_obraz = kompozyt
         self.wyrenderuj_na_plotnie(self.skompilowany_obraz)
@@ -683,8 +917,12 @@ class PyGraph(ctk.CTk):
     def zatwierdz_podglad(self):
         if self.warstwa_podgladowa is not None and self.aktywna_warstwa != -1:
             self.zapisz_stan_do_historii()
-            self.warstwy[self.aktywna_warstwa]['obraz'] = self.warstwa_podgladowa
+            w = self.warstwy[self.aktywna_warstwa]
+            w['obraz'] = self.warstwa_podgladowa
             self.warstwa_podgladowa = None
+            
+            if w.get('is_text') and not w.get('edycja_maski'):
+                w.pop('is_text', None)
             
             self.blokuj_podglad = True
             if hasattr(self, 'slider_brightness'): self.slider_brightness.set(1.0)
@@ -699,12 +937,27 @@ class PyGraph(ctk.CTk):
         if len(self.historia) >= 8: self.historia.pop(0)
         kopia_warstw = []
         for w in self.warstwy:
-            kopia_warstw.append({
+            kopia = {
                 'nazwa': w['nazwa'],
                 'widoczna': w['widoczna'],
                 'krycie': w['krycie'],
-                'obraz': w['obraz'].copy()
-            })
+                'tryb': w.get('tryb', 'Normal'),
+                'edycja_maski': w.get('edycja_maski', False),
+                'obraz': w['obraz'].copy() if w.get('obraz') else None,
+                'maska': w['maska'].copy() if w.get('maska') else None,
+                'offset_x': w.get('offset_x', 0),
+                'offset_y': w.get('offset_y', 0)
+            }
+            if w.get('is_text'):
+                kopia['is_text'] = True
+                kopia['text_content'] = w.get('text_content')
+                kopia['text_x'] = w.get('text_x')
+                kopia['text_y'] = w.get('text_y')
+                kopia['text_color'] = w.get('text_color')
+                kopia['text_size'] = w.get('text_size')
+                kopia['text_font'] = w.get('text_font')
+            kopia_warstw.append(kopia)
+            
         self.historia.append((self.doc_size, self.aktywna_warstwa, kopia_warstw))
         self.btn_cofnij.configure(state="normal", fg_color="transparent", border_width=1, border_color="white", text_color="white")
 
@@ -729,7 +982,9 @@ class PyGraph(ctk.CTk):
     def podglad_suwakow(self, value=None):
         if getattr(self, 'blokuj_podglad', False): return
         if self.aktywna_warstwa == -1: return
-        if self.aktywne_narzedzie: self.ustaw_narzedzie(self.aktywne_narzedzie)
+        if self.aktywne_narzedzie: self.ustaw_narzedzie(None)
+        
+        if self.warstwy[self.aktywna_warstwa].get('edycja_maski'): return 
 
         img = self.warstwy[self.aktywna_warstwa]['obraz'].copy()
         b, c = self.slider_brightness.get(), self.slider_contrast.get()
@@ -745,20 +1000,13 @@ class PyGraph(ctk.CTk):
         rgb.putalpha(img.getchannel('A'))
         
         if sc_val != 1.0:
-            new_w = max(1, int(self.doc_size[0] * sc_val))
-            new_h = max(1, int(self.doc_size[1] * sc_val))
+            new_w = max(1, int(img.width * sc_val))
+            new_h = max(1, int(img.height * sc_val))
             scaled = rgb.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
-            offset_x = (self.doc_size[0] - new_w) // 2
-            offset_y = (self.doc_size[1] - new_h) // 2
-            pusta.paste(scaled, (offset_x, offset_y))
-            rgb = pusta
+            rgb = scaled
             
         self.warstwa_podgladowa = rgb
         self.komponuj_i_wyswietl()
-
-    def zastosuj_suwaki(self):
-        self.zatwierdz_podglad()
 
     def resetuj_suwaki(self):
         self.blokuj_podglad = True
@@ -772,10 +1020,15 @@ class PyGraph(ctk.CTk):
 
     def nałoż_filtr(self, filter_type):
         if self.aktywna_warstwa == -1: return
+        w = self.warstwy[self.aktywna_warstwa]
+        
+        if w.get('is_text') and not w.get('edycja_maski'):
+            w.pop('is_text', None)
+            
         self.zatwierdz_podglad()
         self.zapisz_stan_do_historii()
         
-        img = self.warstwy[self.aktywna_warstwa]['obraz']
+        img = w['obraz']
         if img.mode != "RGBA": img = img.convert("RGBA")
             
         r, g, b, a = img.split()
@@ -783,10 +1036,12 @@ class PyGraph(ctk.CTk):
         
         if filter_type == "grayscale": rgb = ImageOps.grayscale(rgb).convert("RGB")
         elif filter_type == "invert": rgb = ImageOps.invert(rgb)
+        elif filter_type == "posterize": rgb = ImageOps.posterize(rgb, 3)
+        elif filter_type == "solarize": rgb = ImageOps.solarize(rgb, 128)
         else: rgb = rgb.filter(filter_type)
         
         r2, g2, b2 = rgb.split()
-        self.warstwy[self.aktywna_warstwa]['obraz'] = Image.merge("RGBA", (r2, g2, b2, a))
+        w['obraz'] = Image.merge("RGBA", (r2, g2, b2, a))
         self.komponuj_i_wyswietl()
 
     def filtr_szary(self): self.nałoż_filtr("grayscale")
@@ -795,9 +1050,16 @@ class PyGraph(ctk.CTk):
     def filtr_negatyw(self): self.nałoż_filtr("invert")
     def filtr_plaskorzezba(self): self.nałoż_filtr(ImageFilter.EMBOSS)
     def filtr_krawedzie(self): self.nałoż_filtr(ImageFilter.FIND_EDGES)
+    def filtr_kontury(self): self.nałoż_filtr(ImageFilter.CONTOUR)
+    def filtr_wygladzenie(self): self.nałoż_filtr(ImageFilter.SMOOTH_MORE)
+    def filtr_plakatowanie(self): self.nałoż_filtr("posterize")
+    def filtr_solaryzacja(self): self.nałoż_filtr("solarize")
     
-    def zastosuj_wybrany_filtr(self):
-        w = self.combo_filtry.get()
+    def zastosuj_wybrany_filtr(self, w):
+        if self.aktywna_warstwa == -1:
+            self.combo_filtry.set(self.t["effects_placeholder"])
+            return
+            
         k = next((key for key in self.klucze_filtrow if self.t[key] == w), None)
         if k == "bw": self.filtr_szary()
         elif k == "blur": self.filtr_rozmycie()
@@ -805,27 +1067,75 @@ class PyGraph(ctk.CTk):
         elif k == "invert": self.filtr_negatyw()
         elif k == "emboss": self.filtr_plaskorzezba()
         elif k == "edges": self.filtr_krawedzie()
+        elif k == "contour": self.filtr_kontury()
+        elif k == "smooth": self.filtr_wygladzenie()
+        elif k == "posterize": self.filtr_plakatowanie()
+        elif k == "solarize": self.filtr_solaryzacja()
+        
+        self.combo_filtry.set(self.t["effects_placeholder"])
+        self.canvas.focus_set()
 
     def obroc_obraz(self):
-        if self.aktywna_warstwa != -1:
-            self.zatwierdz_podglad()
-            self.zapisz_stan_do_historii()
-            self.warstwy[self.aktywna_warstwa]['obraz'] = self.warstwy[self.aktywna_warstwa]['obraz'].rotate(-90, expand=True)
-            if self.aktywna_warstwa == 0:
-                self.doc_size = (self.doc_size[1], self.doc_size[0])
-            self.komponuj_i_wyswietl()
+        if not self.warstwy: return
+        self.zatwierdz_podglad()
+        self.zapisz_stan_do_historii()
+        
+        for w in self.warstwy:
+            if w.get('is_text'): w.pop('is_text', None)
+            
+            old_img_w = w['obraz'].width
+            w['obraz'] = w['obraz'].rotate(-90, expand=True)
+            if w.get('maska') is not None:
+                w['maska'] = w['maska'].rotate(-90, expand=True)
+            
+            old_x = w.get('offset_x', 0)
+            old_y = w.get('offset_y', 0)
+            w['offset_x'] = old_y
+            w['offset_y'] = self.doc_size[0] - old_x - old_img_w
+                
+        self.doc_size = (self.doc_size[1], self.doc_size[0])
+        self.komponuj_i_wyswietl()
+
+    def odbij_w_poziomie(self):
+        if self.aktywna_warstwa == -1: return
+        self.zatwierdz_podglad()
+        self.zapisz_stan_do_historii()
+        w = self.warstwy[self.aktywna_warstwa]
+        if w.get('is_text'): w.pop('is_text', None)
+        
+        w['obraz'] = ImageOps.mirror(w['obraz'])
+        if w.get('maska') is not None:
+            w['maska'] = ImageOps.mirror(w['maska'])
+        self.komponuj_i_wyswietl()
+
+    def odbij_w_pionie(self):
+        if self.aktywna_warstwa == -1: return
+        self.zatwierdz_podglad()
+        self.zapisz_stan_do_historii()
+        w = self.warstwy[self.aktywna_warstwa]
+        if w.get('is_text'): w.pop('is_text', None)
+        
+        w['obraz'] = ImageOps.flip(w['obraz'])
+        if w.get('maska') is not None:
+            w['maska'] = ImageOps.flip(w['maska'])
+        self.komponuj_i_wyswietl()
 
     def usun_tlo(self):
         if self.aktywna_warstwa == -1: return
+        w = self.warstwy[self.aktywna_warstwa]
+        if w.get('edycja_maski'): return
+        
         try:
             self.zatwierdz_podglad()
             self.zapisz_stan_do_historii()
             self.config(cursor="watch")
             self.update()
             
-            wynik = remove(self.warstwy[self.aktywna_warstwa]['obraz'])
+            if w.get('is_text'): w.pop('is_text', None)
+            
+            wynik = remove(w['obraz'])
             if wynik.mode != "RGBA": wynik = wynik.convert("RGBA")
-            self.warstwy[self.aktywna_warstwa]['obraz'] = wynik
+            w['obraz'] = wynik
             
             self.komponuj_i_wyswietl()
         except Exception as e:
@@ -833,46 +1143,48 @@ class PyGraph(ctk.CTk):
         finally:
             self.config(cursor="")
 
-    def zastosuj_ciecie(self):
-        if not self.warstwy or not self.rect_coords: return
-        try:
-            self.zatwierdz_podglad()
-            x1, y1, x2, y2 = self.rect_coords
-            rx1, ry1 = self.canvas_to_image_coords(min(x1, x2), min(y1, y2))
-            rx2, ry2 = self.canvas_to_image_coords(max(x1, x2), max(y1, y2))
-            
-            box = (max(0, rx1), max(0, ry1), min(self.doc_size[0], rx2), min(self.doc_size[1], ry2))
-            
-            self.zapisz_stan_do_historii()
-            for w in self.warstwy: w['obraz'] = w['obraz'].crop(box)
-            self.doc_size = (box[2]-box[0], box[3]-box[1])
-            
-            self.ustaw_narzedzie('crop')
-            self.komponuj_i_wyswietl()
-        except Exception as e:
-            messagebox.showerror(self.t["msg_err_title"], f"Błąd kadrowania: {e}")
-
-    def zastosuj_ciecie_z_pol(self):
+    def wykonaj_kadrowanie(self):
         if not self.warstwy: return
         try:
-            x, y = int(self.entry_x.get()), int(self.entry_y.get())
-            w, h = int(self.entry_w.get()), int(self.entry_h.get())
-            img_w, img_h = self.doc_size
-
-            if w <= 0 or h <= 0: raise ValueError(self.t["err_dim"])
-            x, y = max(0, x), max(0, y)
-            w, h = min(w, img_w - x), min(h, img_h - y)
-
             self.zatwierdz_podglad()
+            if self.rect_coords and self.aktywne_narzedzie == 'crop':
+                x1, y1, x2, y2 = self.rect_coords
+                rx1, ry1 = self.canvas_to_image_coords(min(x1, x2), min(y1, y2))
+                rx2, ry2 = self.canvas_to_image_coords(max(x1, x2), max(y1, y2))
+                
+                cx1, cy1 = max(0, rx1), max(0, ry1)
+                cx2, cy2 = min(self.doc_size[0], rx2), min(self.doc_size[1], ry2)
+                
+                w_new, h_new = cx2 - cx1, cy2 - cy1
+                if w_new <= 0 or h_new <= 0: return
+                offset_x_change, offset_y_change = cx1, cy1
+            else:
+                x, y = int(self.entry_x.get()), int(self.entry_y.get())
+                w, h = int(self.entry_w.get()), int(self.entry_h.get())
+                img_w, img_h = self.doc_size
+
+                if w <= 0 or h <= 0: raise ValueError(self.t["err_dim"])
+                x, y = max(0, x), max(0, y)
+                w, h = min(w, img_w - x), min(h, img_h - y)
+                
+                w_new, h_new = w, h
+                offset_x_change, offset_y_change = x, y
+
             self.zapisz_stan_do_historii()
-            box = (x, y, x + w, y + h)
-            for warstwa in self.warstwy: warstwa['obraz'] = warstwa['obraz'].crop(box)
-            self.doc_size = (box[2]-box[0], box[3]-box[1])
             
-            if self.aktywne_narzedzie: self.ustaw_narzedzie(self.aktywne_narzedzie)
+            for warstwa in self.warstwy: 
+                warstwa['offset_x'] -= offset_x_change
+                warstwa['offset_y'] -= offset_y_change
+                
+            self.doc_size = (w_new, h_new)
+            
+            self.ustaw_narzedzie(None)
             self.komponuj_i_wyswietl()
+            
         except ValueError as e:
             messagebox.showerror(self.t["err_val"], f"{self.t['err_val']} {e}")
+        except Exception as e:
+            messagebox.showerror(self.t["msg_err_title"], f"Błąd kadrowania: {e}")
 
     def canvas_to_image_coords(self, c_x, c_y):
         if not self.doc_size: return 0, 0
@@ -885,23 +1197,183 @@ class PyGraph(ctk.CTk):
     def zastosuj_rysowanie(self, typ, end_x=None, end_y=None):
         if self.aktywna_warstwa == -1: return
         self.zatwierdz_podglad()
-        self.zapisz_stan_do_historii()
         
-        img = self.warstwy[self.aktywna_warstwa]['obraz']
-        draw = ImageDraw.Draw(img)
-        rgb = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
-        rozmiar = int(self.slider_size.get())
+        w = self.warstwy[self.aktywna_warstwa]
+        is_mask = w.get('edycja_maski', False)
+        
+        if typ == 'brush':
+            self.zapisz_stan_do_historii()
+            if not is_mask and w.get('is_text'): w.pop('is_text', None)
+            
+            if is_mask and w.get('maska') is not None:
+                img = w['maska']
+                r, g, b = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+                fill_color = int(r * 0.299 + g * 0.587 + b * 0.114)
+            else:
+                img = w['obraz']
+                fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
 
-        if typ == 'brush' and len(self.draw_points) > 1:
-            real_pts = [self.canvas_to_image_coords(px, py) for px, py in self.draw_points]
-            draw.line(real_pts, fill=rgb, width=rozmiar, joint="curve")
-        elif typ == 'rect' and end_x and end_y:
+            draw = ImageDraw.Draw(img)
+            rozmiar = int(self.slider_size.get())
+            ox = w.get('offset_x', 0)
+            oy = w.get('offset_y', 0)
+
+            if len(self.draw_points) > 1:
+                real_pts = []
+                for px, py in self.draw_points:
+                    rx, ry = self.canvas_to_image_coords(px, py)
+                    real_pts.append((rx - ox, ry - oy))
+                draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
+                
+        elif typ == 'shape' and end_x and end_y:
             rx1, ry1 = self.canvas_to_image_coords(self.last_x, self.last_y)
             rx2, ry2 = self.canvas_to_image_coords(end_x, end_y)
-            draw.rectangle([min(rx1, rx2), min(ry1, ry2), max(rx1, rx2), max(ry1, ry2)], outline=rgb, width=rozmiar)
+            shape_type = self.combo_shape.get()
+            rozmiar = int(self.slider_size.get())
+            fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+            
+            sw = abs(rx2 - rx1)
+            sh = abs(ry2 - ry1)
+            ox = min(rx1, rx2)
+            oy = min(ry1, ry2)
+            
+            if sw < 2 and sh < 2: 
+                if self.temp_draw_id: self.canvas.delete(self.temp_draw_id)
+                return
+
+            self.zapisz_stan_do_historii()
+
+            pad = rozmiar + 2
+            img = Image.new("RGBA", (sw + 2*pad, sh + 2*pad), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+            
+            box = [pad, pad, sw + pad, sh + pad]
+            
+            if shape_type == self.t["shape_rect"]:
+                draw.rectangle(box, outline=fill_color, width=rozmiar)
+            elif shape_type == self.t["shape_ellipse"]:
+                draw.ellipse(box, outline=fill_color, width=rozmiar)
+            elif shape_type == self.t["shape_line"]:
+                x1 = (rx1 - ox) + pad
+                y1 = (ry1 - oy) + pad
+                x2 = (rx2 - ox) + pad
+                y2 = (ry2 - oy) + pad
+                draw.line([x1, y1, x2, y2], fill=fill_color, width=rozmiar, joint="curve")
+            elif shape_type == self.t["shape_triangle"]:
+                pts = [(pad, sh + pad), (sw//2 + pad, pad), (sw + pad, sh + pad)]
+                draw.polygon(pts, outline=fill_color, width=rozmiar)
+            elif shape_type == self.t["shape_rounded"]:
+                radius = min(sw, sh) // 5
+                draw.rounded_rectangle(box, radius=radius, outline=fill_color, width=rozmiar)
+                
             if self.temp_draw_id: self.canvas.delete(self.temp_draw_id)
             
+            nazwa = f"K: {shape_type[:5]}"
+            idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
+            
+            self.warstwy.insert(idx, {
+                'nazwa': nazwa, 
+                'obraz': img,
+                'widoczna': True, 
+                'krycie': 1.0, 
+                'tryb': 'Normal', 
+                'maska': None, 
+                'edycja_maski': False, 
+                'offset_x': ox - pad, 
+                'offset_y': oy - pad
+            })
+            
+            self.ustaw_aktywna_warstwe(idx)
+            self.ustaw_narzedzie('move')
+            
         self.komponuj_i_wyswietl()
+
+    def zastosuj_wypelnienie(self, x, y):
+        if self.aktywna_warstwa == -1: return
+        self.zatwierdz_podglad()
+        self.zapisz_stan_do_historii()
+        
+        w = self.warstwy[self.aktywna_warstwa]
+        
+        if not w.get('edycja_maski') and w.get('is_text'): w.pop('is_text', None)
+        
+        layer_x = x - w.get('offset_x', 0)
+        layer_y = y - w.get('offset_y', 0)
+        
+        is_mask = w.get('edycja_maski', False)
+        if is_mask and w.get('maska') is not None:
+            img = w['maska']
+            r, g, b = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            fill_color = int(r * 0.299 + g * 0.587 + b * 0.114)
+        else:
+            img = w['obraz']
+            fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+
+        ImageDraw.floodfill(img, (layer_x, layer_y), fill_color)
+        self.komponuj_i_wyswietl()
+
+    def zmien_czcionke_tekstu(self, wartosc):
+        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
+            self.zapisz_stan_do_historii()
+            self.warstwy[self.aktywna_warstwa]['text_font'] = wartosc
+            self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+            self.komponuj_i_wyswietl()
+
+    def zmien_rozmiar_tekstu(self, wartosc):
+        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
+            if not getattr(self, 'text_resize_started', False):
+                self.zapisz_stan_do_historii()
+                self.text_resize_started = True
+            self.warstwy[self.aktywna_warstwa]['text_size'] = int(wartosc)
+            self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+            self.komponuj_i_wyswietl()
+
+    def zatwierdz_rozmiar_tekstu(self):
+        self.text_resize_started = False
+
+    def renderuj_warstwe_tekstu(self, idx):
+        w = self.warstwy[idx]
+        if not w.get('is_text'): return
+        
+        pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(pusta)
+        
+        font_name = w.get('text_font', 'Arial')
+        font = None
+        
+        try_paths = [
+            font_name,
+            font_name + ".ttf", 
+            font_name + ".ttc", 
+            font_name.lower() + ".ttf",
+            font_name.replace(" ", "") + ".ttf",
+            font_name.replace(" ", "") + ".ttc"
+        ]
+        
+        base_dirs = [""]
+        if sys.platform == "darwin":
+            base_dirs += ["/Library/Fonts/", "/System/Library/Fonts/", "/System/Library/Fonts/Supplemental/", os.path.expanduser("~/Library/Fonts/")]
+        elif sys.platform == "win32":
+            base_dirs += ["C:\\Windows\\Fonts\\"]
+        else:
+            base_dirs += ["/usr/share/fonts/truetype/", "/usr/share/fonts/"]
+            
+        for p in try_paths:
+            for bd in base_dirs:
+                try:
+                    font = ImageFont.truetype(os.path.join(bd, p), size=w['text_size'])
+                    break
+                except: pass
+            if font: break
+                
+        if not font:
+            try: font = ImageFont.truetype("arial.ttf", size=w['text_size'])
+            except: 
+                try: font = ImageFont.truetype("Arial.ttf", size=w['text_size'])
+                except: font = ImageFont.load_default()
+        
+        draw.text((w['text_x'], w['text_y']), w['text_content'], fill=w['text_color'], font=font)
+        w['obraz'] = pusta
 
     def wstaw_tekst(self, x, y):
         tekst = simpledialog.askstring("Tekst", "Wpisz tekst:")
@@ -911,94 +1383,146 @@ class PyGraph(ctk.CTk):
         self.zapisz_stan_do_historii()
         
         rx, ry = self.canvas_to_image_coords(x, y)
-        img = self.warstwy[self.aktywna_warstwa]['obraz']
-        draw = ImageDraw.Draw(img)
-        rgb = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+        nazwa = f"T: {tekst[:8]}"
+        idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
+        fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
         rozmiar_czcionki = int(self.slider_font_size.get())
+        wybrana_czcionka = self.combo_font.get()
         
-        try: font = ImageFont.truetype("arial.ttf", size=rozmiar_czcionki)
-        except: font = ImageFont.load_default()
+        self.warstwy.insert(idx, {
+            'nazwa': nazwa, 
+            'obraz': Image.new("RGBA", self.doc_size, (0, 0, 0, 0)),
+            'widoczna': True, 
+            'krycie': 1.0, 
+            'tryb': 'Normal', 
+            'maska': None, 
+            'edycja_maski': False, 
+            'offset_x': 0, 
+            'offset_y': 0,
+            'is_text': True,
+            'text_content': tekst,
+            'text_x': rx,
+            'text_y': ry,
+            'text_color': fill_color,
+            'text_size': rozmiar_czcionki,
+            'text_font': wybrana_czcionka
+        })
         
-        draw.text((rx, ry), tekst, fill=rgb, font=font)
-        self.ustaw_narzedzie('text')
+        self.renderuj_warstwe_tekstu(idx)
+        self.ustaw_aktywna_warstwe(idx)
+        self.ustaw_narzedzie('move')
         self.komponuj_i_wyswietl()
 
     def on_canvas_press(self, event):
         if self.aktywna_warstwa == -1 or not self.aktywne_narzedzie: return
-        
         self.zatwierdz_podglad()
-        
         x, y = event.x, event.y
         self.last_x, self.last_y = x, y
 
         if self.aktywne_narzedzie == 'move':
             self.zapisz_stan_do_historii()
-            self.move_original_img = self.warstwy[self.aktywna_warstwa]['obraz'].copy()
+            self.move_start_x = x
+            self.move_start_y = y
+            self.move_start_offset_x = self.warstwy[self.aktywna_warstwa].get('offset_x', 0)
+            self.move_start_offset_y = self.warstwy[self.aktywna_warstwa].get('offset_y', 0)
         elif self.aktywne_narzedzie == 'crop':
-            if not self.rect_coords: self.akcja_myszy, self.rect_coords = 'draw', [x, y, x, y]
+            if not self.rect_coords: 
+                self.akcja_myszy = 'draw'
+                self.rect_coords = [x, y, x, y]
             else:
                 x1, y1, x2, y2 = self.rect_coords
-                xm, xx, ym, yx = min(x1,x2), max(x1,x2), min(y1,y2), max(y1,y2)
-                if abs(x-xm)<10 and abs(y-ym)<10: self.akcja_myszy = 'resize_tl'
-                elif xm<x<xx and ym<y<yx: self.akcja_myszy = 'move'
-                else: self.akcja_myszy, self.rect_coords = 'draw', [x, y, x, y]
+                xm, xx = min(x1, x2), max(x1, x2)
+                ym, yx = min(y1, y2), max(y1, y2)
+                self.rect_coords = [xm, ym, xx, yx]
+                
+                t = 15
+                if abs(x - xm) < t and abs(y - ym) < t: self.akcja_myszy = 'resize_tl'
+                elif abs(x - xx) < t and abs(y - ym) < t: self.akcja_myszy = 'resize_tr'
+                elif abs(x - xm) < t and abs(y - yx) < t: self.akcja_myszy = 'resize_bl'
+                elif abs(x - xx) < t and abs(y - yx) < t: self.akcja_myszy = 'resize_br'
+                elif xm < x < xx and ym < y < yx: self.akcja_myszy = 'move'
+                else: 
+                    self.akcja_myszy = 'draw'
+                    self.rect_coords = [x, y, x, y]
             self.rysuj_ramke_na_plotnie()
-        elif self.aktywne_narzedzie == 'brush': self.draw_points = [(x, y)]
-        elif self.aktywne_narzedzie == 'text': self.wstaw_tekst(x, y)
-        elif self.aktywne_narzedzie == 'rect': self.temp_draw_id = self.canvas.create_rectangle(x,y,x,y, outline=self.current_color, width=self.slider_size.get())
+        elif self.aktywne_narzedzie == 'brush': 
+            self.draw_points = [(x, y)]
+        elif self.aktywne_narzedzie == 'fill':
+            rx, ry = self.canvas_to_image_coords(x, y)
+            self.zastosuj_wypelnienie(rx, ry)
+        elif self.aktywne_narzedzie == 'text': 
+            self.wstaw_tekst(x, y)
+        elif self.aktywne_narzedzie == 'shape': 
+            shape_type = self.combo_shape.get()
+            color = self.get_draw_color()
+            width = int(self.slider_size.get())
+            if shape_type == self.t["shape_rect"] or shape_type == self.t["shape_rounded"]:
+                self.temp_draw_id = self.canvas.create_rectangle(x,y,x,y, outline=color, width=width)
+            elif shape_type == self.t["shape_ellipse"]:
+                self.temp_draw_id = self.canvas.create_oval(x,y,x,y, outline=color, width=width)
+            elif shape_type == self.t["shape_line"]:
+                self.temp_draw_id = self.canvas.create_line(x,y,x,y, fill=color, width=width, capstyle=tk.ROUND)
+            elif shape_type == self.t["shape_triangle"]:
+                self.temp_draw_id = self.canvas.create_polygon(x,y,x,y,x,y, outline=color, fill="", width=width)
 
     def on_canvas_drag(self, event):
         if self.aktywna_warstwa == -1 or not self.aktywne_narzedzie: return
         x, y = event.x, event.y
         
-        if self.aktywne_narzedzie == 'move' and hasattr(self, 'move_original_img'):
-            dx = x - self.last_x
-            dy = y - self.last_y
+        if self.aktywne_narzedzie == 'move':
+            dx = x - self.move_start_x
+            dy = y - self.move_start_y
             r_x = self.doc_size[0] / self.display_width
             r_y = self.doc_size[1] / self.display_height
             
-            idx = int(dx * r_x)
-            idy = int(dy * r_y)
-            
-            pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
-            pusta.paste(self.move_original_img, (idx, idy))
-            self.warstwy[self.aktywna_warstwa]['obraz'] = pusta
+            self.warstwy[self.aktywna_warstwa]['offset_x'] = self.move_start_offset_x + int(dx * r_x)
+            self.warstwy[self.aktywna_warstwa]['offset_y'] = self.move_start_offset_y + int(dy * r_y)
             self.komponuj_i_wyswietl()
             
         elif self.aktywne_narzedzie == 'crop' and self.akcja_myszy:
             dx, dy = x - self.last_x, y - self.last_y
-            if self.akcja_myszy == 'draw': self.rect_coords[2], self.rect_coords[3] = x, y
+            if self.akcja_myszy == 'draw': 
+                self.rect_coords[2], self.rect_coords[3] = x, y
             elif self.akcja_myszy == 'move':
-                self.rect_coords[0] += dx; self.rect_coords[1] += dy
-                self.rect_coords[2] += dx; self.rect_coords[3] += dy
-            elif self.akcja_myszy == 'resize_tl': self.rect_coords[0], self.rect_coords[1] = x, y
-            elif self.akcja_myszy == 'resize_tr': self.rect_coords[2], self.rect_coords[1] = x, y
-            elif self.akcja_myszy == 'resize_bl': self.rect_coords[0], self.rect_coords[3] = x, y
-            elif self.akcja_myszy == 'resize_br': self.rect_coords[2], self.rect_coords[3] = x, y
+                self.rect_coords[0] += dx
+                self.rect_coords[1] += dy
+                self.rect_coords[2] += dx
+                self.rect_coords[3] += dy
+            elif self.akcja_myszy == 'resize_tl': 
+                self.rect_coords[0], self.rect_coords[1] = x, y
+            elif self.akcja_myszy == 'resize_tr': 
+                self.rect_coords[2], self.rect_coords[1] = x, y
+            elif self.akcja_myszy == 'resize_bl': 
+                self.rect_coords[0], self.rect_coords[3] = x, y
+            elif self.akcja_myszy == 'resize_br': 
+                self.rect_coords[2], self.rect_coords[3] = x, y
+            
             self.last_x, self.last_y = x, y
             self.rysuj_ramke_na_plotnie()
         elif self.aktywne_narzedzie == 'brush':
-            self.canvas.create_line(self.last_x, self.last_y, x, y, fill=self.current_color, width=self.slider_size.get(), capstyle=tk.ROUND, smooth=True)
+            self.canvas.create_line(self.last_x, self.last_y, x, y, fill=self.get_draw_color(), width=self.slider_size.get(), capstyle=tk.ROUND, smooth=True)
             self.draw_points.append((x, y))
             self.last_x, self.last_y = x, y
-        elif self.aktywne_narzedzie == 'rect' and self.temp_draw_id:
-            self.canvas.coords(self.temp_draw_id, self.last_x, self.last_y, x, y)
+        elif self.aktywne_narzedzie == 'shape' and self.temp_draw_id:
+            shape_type = self.combo_shape.get()
+            if shape_type == self.t["shape_triangle"]:
+                self.canvas.coords(self.temp_draw_id, self.last_x, y, (self.last_x + x)/2, self.last_y, x, y)
+            else:
+                self.canvas.coords(self.temp_draw_id, self.last_x, self.last_y, x, y)
 
     def on_canvas_release(self, event):
         if self.aktywna_warstwa == -1 or not self.aktywne_narzedzie: return
-        
-        if self.aktywne_narzedzie == 'move':
-            if hasattr(self, 'move_original_img'): del self.move_original_img 
-        elif self.aktywne_narzedzie == 'brush': self.zastosuj_rysowanie('brush')
-        elif self.aktywne_narzedzie == 'rect': self.zastosuj_rysowanie('rect', event.x, event.y)
+        if self.aktywne_narzedzie == 'brush': self.zastosuj_rysowanie('brush')
+        elif self.aktywne_narzedzie == 'shape': self.zastosuj_rysowanie('shape', event.x, event.y)
 
     def rysuj_ramke_na_plotnie(self):
         self.canvas.delete("crop_element")
         if not self.rect_coords: return
         x1, y1, x2, y2 = self.rect_coords
         self.canvas.create_rectangle(x1, y1, x2, y2, outline='#00ff00', width=2, dash=(5,5), tags="crop_element")
-        r, k = 5, '#00ff00'
-        for px, py in [(x1,y1), (x2,y1), (x1,y2), (x2,y2)]: self.canvas.create_oval(px-r, py-r, px+r, py+r, fill=k, tags="crop_element")
+        r, k = 6, '#00ff00'
+        for px, py in [(x1,y1), (x2,y1), (x1,y2), (x2,y2)]: 
+            self.canvas.create_oval(px-r, py-r, px+r, py+r, fill=k, tags="crop_element")
 
     def ustaw_narzedzie(self, narzedzie):
         if not self.warstwy: return
@@ -1011,8 +1535,9 @@ class PyGraph(ctk.CTk):
             self.aktywne_narzedzie = narzedzie
             if narzedzie == 'crop': self.canvas.config(cursor="cross")
             elif narzedzie == 'brush': self.canvas.config(cursor="pencil")
+            elif narzedzie == 'fill': self.canvas.config(cursor="tcross")
             elif narzedzie == 'text': self.canvas.config(cursor="xterm")
-            elif narzedzie == 'rect': self.canvas.config(cursor="crosshair")
+            elif narzedzie == 'shape': self.canvas.config(cursor="crosshair")
             elif narzedzie == 'move': self.canvas.config(cursor="fleur") 
 
         self.zaktualizuj_styl_narzedzi()
@@ -1024,6 +1549,7 @@ class PyGraph(ctk.CTk):
             self.resize_timer = self.after(150, lambda: self.ustaw_narzedzie('crop') if self.aktywne_narzedzie == 'crop' else self.komponuj_i_wyswietl())
 
     def zapisz_obraz(self, event=None):
+        self.zatwierdz_podglad()
         if not self.skompilowany_obraz: return
         sciezka = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG", "*.png"), ("JPEG", "*.jpg")])
         if sciezka:
