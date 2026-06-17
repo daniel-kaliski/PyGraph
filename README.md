@@ -59,11 +59,11 @@ To run the application locally, make sure you have Python installed (version 3.8
    python PyPhoto.py
 
 **Technologies Used**
-CustomTkinter: A modern, theme-supporting graphical user interface.
+`CustomTkinter`: A modern, theme-supporting graphical user interface.
 
-Pillow (PIL): The main engine for pixel grid processing, Alpha channel manipulation, and image composition.
+`Pillow` (PIL): The main engine for pixel grid processing, Alpha channel manipulation, and image composition.
 
-rembg: A machine learning tool for precise background removal.
+`rembg`: A machine learning tool for precise background removal.
 
 **Screenshot**
 
