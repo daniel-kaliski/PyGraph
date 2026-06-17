@@ -46,4 +46,4 @@ To run the application locally, make sure you have Python installed (version 3.8
 ```bash
    git clone [https://github.com/daniel-kaliski/PyPhoto.git](https://github.com/daniel-kaliski/PyPhoto.git)
    cd PyPhoto
-
+2. Clone the repository:
