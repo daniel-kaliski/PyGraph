@@ -22,6 +22,15 @@ if sys.stdout is None:
 if sys.stderr is None:
     sys.stderr = DummyStream()
 
+try:
+    if sys.platform == "win32":
+        import ctypes
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+        myappid = 'com.danielkaliski.pyphoto.1.0'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except Exception:
+    pass
+
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox, colorchooser, simpledialog
@@ -39,7 +48,7 @@ TEXTS = {
         "menu_tools": "Narzędzia",
         "menu_shapes": "Kształty",
         "menu_filters": "Filtry",
-        "active_tool": "Aktywne narzędzie:",
+        "active_tool": "Narzędzie:",
         "none": "Brak",
         "tools": "Narzędzia",
         "open": "Otwórz obraz...",
@@ -48,7 +57,7 @@ TEXTS = {
         "rotate": "Obróć o 90°",
         "flip_h": "Odbij w poziomie",
         "flip_v": "Odbij w pionie",
-        "adjust": "Dopasowanie warstwy:",
+        "adjust": "Dopasowanie:",
         "brightness": "Jasność",
         "contrast": "Kontrast",
         "saturation": "Nasycenie",
@@ -279,10 +288,6 @@ class PyPhoto(ctk.CTk):
         
         try:
             if sys.platform == "win32":
-                import ctypes
-                myappid = 'com.danielkaliski.pyphoto.1.0'
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-                
                 icon_path = self.pobierz_sciezke_zasobu("icon.ico")
                 if os.path.exists(icon_path):
                     self.iconbitmap(icon_path)
@@ -320,36 +325,39 @@ class PyPhoto(ctk.CTk):
         
         self.klucze_filtrow = ["bw", "blur", "sharpen", "invert", "emboss", "edges", "contour", "smooth", "posterize", "solarize"]
 
-        szerokosc_lewego_panelu = 450 if sys.platform == "win32" else 330
+        szerokosc_paneli = 260
 
-        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(0, minsize=szerokosc_paneli, weight=0)
         self.grid_columnconfigure(1, weight=1) 
-        self.grid_columnconfigure(2, weight=0)
+        self.grid_columnconfigure(2, minsize=szerokosc_paneli, weight=0)
         self.grid_rowconfigure(0, weight=1)
         
-        self.panel_lewy = ctk.CTkFrame(self, corner_radius=0)
+        self.panel_lewy = ctk.CTkFrame(self, corner_radius=0, width=szerokosc_paneli)
         self.panel_lewy.grid(row=0, column=0, sticky="nsew")
+        self.panel_lewy.grid_propagate(False)
+        self.panel_lewy.pack_propagate(False)
 
-        self.btn_lang = ctk.CTkButton(self.panel_lewy, text="PL" if self.lang == "pl" else "EN", width=60, height=28, corner_radius=6, command=self.przelacz_jezyk, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_lang = ctk.CTkButton(self.panel_lewy, text="PL" if self.lang == "pl" else "EN", width=40, height=28, corner_radius=6, command=self.przelacz_jezyk, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_lang.pack(anchor="nw", padx=10, pady=10)
 
-        scroll_w = 420 if sys.platform == "win32" else 330
+        scroll_w = 240
         self.panel_narzedzi = ctk.CTkScrollableFrame(self.panel_lewy, fg_color="transparent", width=scroll_w)
         self.panel_narzedzi.pack(side="top", fill="both", expand=True)
+        self.uaktywnij_autoukrywanie_paska(self.panel_narzedzi)
         
-        self.lbl_aktywne_narz = ctk.CTkLabel(self.panel_narzedzi, text=f"{self.t['active_tool']} {self.t['none']}", font=ctk.CTkFont(size=14, weight="bold"), text_color="#00ff00")
+        self.lbl_aktywne_narz = ctk.CTkLabel(self.panel_narzedzi, text=f"{self.t['active_tool']} {self.t['none']}", font=ctk.CTkFont(size=13, weight="bold"), text_color="#00ff00", wraplength=220)
         self.lbl_aktywne_narz.pack(pady=(0, 10))
 
         ramka_opcji = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
-        ramka_opcji.pack(pady=5, padx=15, fill="x")
+        ramka_opcji.pack(pady=5, padx=5, fill="x")
         
         self.btn_color = ctk.CTkButton(ramka_opcji, text=self.t["color"], image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor, fg_color="transparent", border_width=1, border_color="white", text_color=self.current_color, hover_color="#333")
         self.btn_color.pack(fill="x", pady=5)
         
         ramka_grubosc = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_grubosc.pack(fill="x", pady=5)
-        self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=90, anchor="w")
-        self.lbl_size.pack(side="left", padx=(0, 5))
+        self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=80, anchor="w", font=ctk.CTkFont(size=13))
+        self.lbl_size.pack(side="left", padx=(0, 2))
         self.slider_size = ctk.CTkSlider(ramka_grubosc, from_=1, to=100, button_color="#888", button_hover_color="#bbb")
         self.slider_size.set(5)
         self.slider_size.pack(side="right", expand=True, fill="x")
@@ -364,8 +372,8 @@ class PyPhoto(ctk.CTk):
 
         ramka_czcionka = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_czcionka.pack(fill="x", pady=5)
-        self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=90, anchor="w")
-        self.lbl_font_size.pack(side="left", padx=(0, 5))
+        self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=80, anchor="w", font=ctk.CTkFont(size=13))
+        self.lbl_font_size.pack(side="left", padx=(0, 2))
         self.slider_font_size = ctk.CTkSlider(ramka_czcionka, from_=10, to=300, button_color="#888", button_hover_color="#bbb", command=self.zmien_rozmiar_tekstu)
         self.slider_font_size.set(40)
         self.slider_font_size.pack(side="right", expand=True, fill="x")
@@ -373,13 +381,13 @@ class PyPhoto(ctk.CTk):
 
         ctk.CTkFrame(self.panel_narzedzi, height=2, fg_color="#333").pack(fill="x", pady=15)
 
-        self.lbl_adjust = ctk.CTkLabel(self.panel_narzedzi, text=self.t["adjust"], font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_adjust = ctk.CTkLabel(self.panel_narzedzi, text=self.t["adjust"], font=ctk.CTkFont(size=14, weight="bold"))
         self.lbl_adjust.pack(pady=(0, 10))
 
         for nazwa, attr in [("brightness", "slider_brightness"), ("contrast", "slider_contrast"), ("saturation", "slider_saturation"), ("sharpness", "slider_sharpness"), ("scale", "slider_scale")]:
             ramka_suwaka = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
-            ramka_suwaka.pack(fill="x", padx=15, pady=2)
-            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=110, anchor="w")
+            ramka_suwaka.pack(fill="x", padx=5, pady=2)
+            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=80, anchor="w", font=ctk.CTkFont(size=13))
             lbl.pack(side="left", padx=(0, 5))
             if nazwa in ["brightness", "contrast"]:
                 suwak = ctk.CTkSlider(ramka_suwaka, from_=0.1, to=2.0, command=self.podglad_suwakow)
@@ -395,14 +403,14 @@ class PyPhoto(ctk.CTk):
 
         ctk.CTkFrame(self.panel_narzedzi, height=2, fg_color="#333").pack(fill="x", pady=15)
 
-        self.lbl_kadrowanie = ctk.CTkLabel(self.panel_narzedzi, text=self.t["crop"], font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_kadrowanie = ctk.CTkLabel(self.panel_narzedzi, text=self.t["crop"], font=ctk.CTkFont(size=14, weight="bold"))
         self.lbl_kadrowanie.pack(pady=(0, 10))
         
         self.btn_crop = ctk.CTkButton(self.panel_narzedzi, text=self.t["crop_on"], image=self.icons.get("crop"), height=32, corner_radius=6, command=lambda: self.ustaw_narzedzie('crop'), fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_crop.pack(pady=(5,5), padx=20, fill="x")
+        self.btn_crop.pack(pady=(5,5), padx=10, fill="x")
         
         self.ramka_px = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
-        self.ramka_px.pack(pady=5, padx=15, fill="x")
+        self.ramka_px.pack(pady=5, padx=5, fill="x")
         self.ramka_px.grid_columnconfigure(0, weight=1)
         self.ramka_px.grid_columnconfigure(1, weight=1)
         
@@ -412,14 +420,13 @@ class PyPhoto(ctk.CTk):
         self.entry_h, self.lbl_h = self.stworz_pole_px(self.ramka_px, self.t["height"], 1, 1)
         
         self.btn_dokladne_crop = ctk.CTkButton(self.panel_narzedzi, text=self.t["crop_apply"], image=self.icons.get("check"), height=32, corner_radius=6, command=self.wykonaj_kadrowanie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_dokladne_crop.pack(pady=5, padx=20, fill="x")
+        self.btn_dokladne_crop.pack(pady=5, padx=10, fill="x")
 
-        # Płótno na obraz
         self.panel_obrazu = ctk.CTkFrame(self)
         self.panel_obrazu.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.canvas = tk.Canvas(self.panel_obrazu, bg="gray25", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
-        self.text_label = ctk.CTkLabel(self.panel_obrazu, text=self.t["help"], font=("Arial", 16), text_color="gray70")
+        self.text_label = ctk.CTkLabel(self.panel_obrazu, text=self.t["help"], font=ctk.CTkFont(size=14), text_color="gray70")
         self.canvas.create_window(0, 0, window=self.text_label, anchor="center", tags="help_text")
 
         self.canvas.bind("<Configure>", self.przy_zmianie_rozmiaru)
@@ -427,30 +434,31 @@ class PyPhoto(ctk.CTk):
         self.canvas.bind("<B1-Motion>", self.on_canvas_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_release)
 
-        # Panel Prawy (Warstwy)
-        self.panel_prawy = ctk.CTkFrame(self, corner_radius=0)
+        self.panel_prawy = ctk.CTkFrame(self, corner_radius=0, width=szerokosc_paneli)
         self.panel_prawy.grid(row=0, column=2, sticky="nsew")
+        self.panel_prawy.grid_propagate(False)
+        self.panel_prawy.pack_propagate(False)
 
-        scroll_prawy_w = 280 if sys.platform == "win32" else 260
+        scroll_prawy_w = 260
 
-        self.lbl_layers_title = ctk.CTkLabel(self.panel_prawy, text=self.t["layers"], font=ctk.CTkFont(size=18, weight="bold"))
+        self.lbl_layers_title = ctk.CTkLabel(self.panel_prawy, text=self.t["layers"], font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_layers_title.pack(pady=(15, 5))
 
         ramka_kontrolek_warstw = ctk.CTkFrame(self.panel_prawy, fg_color="transparent")
         ramka_kontrolek_warstw.pack(fill="x", padx=10, pady=2)
         
-        self.btn_add_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_add"], image=self.icons.get("layer_add"), width=65, height=28, corner_radius=6, command=self.dodaj_pusta_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_add_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_add"], image=self.icons.get("layer_add"), width=60, height=28, corner_radius=6, command=self.dodaj_pusta_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_add_layer.pack(side="left", padx=2, expand=True)
-        self.btn_insert_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_insert"], image=self.icons.get("layer_insert"), width=65, height=28, corner_radius=6, command=self.wstaw_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_insert_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_insert"], image=self.icons.get("layer_insert"), width=60, height=28, corner_radius=6, command=self.wstaw_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_insert_layer.pack(side="left", padx=2, expand=True)
-        self.btn_del_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_del"], image=self.icons.get("layer_del"), width=65, height=28, corner_radius=6, command=self.usun_aktywna_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_del_layer = ctk.CTkButton(ramka_kontrolek_warstw, text=self.t["layer_del"], image=self.icons.get("layer_del"), width=60, height=28, corner_radius=6, command=self.usun_aktywna_warstwe, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_del_layer.pack(side="left", padx=2, expand=True)
 
         ramka_maski = ctk.CTkFrame(self.panel_prawy, fg_color="transparent")
         ramka_maski.pack(fill="x", padx=10, pady=2)
-        self.btn_add_mask = ctk.CTkButton(ramka_maski, text=self.t["mask_add"], image=self.icons.get("layer_add"), width=65, height=28, corner_radius=6, command=self.dodaj_maske, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_add_mask = ctk.CTkButton(ramka_maski, text=self.t["mask_add"], image=self.icons.get("layer_add"), width=60, height=28, corner_radius=6, command=self.dodaj_maske, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_add_mask.pack(side="left", padx=2, expand=True)
-        self.btn_del_mask = ctk.CTkButton(ramka_maski, text=self.t["mask_del"], image=self.icons.get("layer_del"), width=65, height=28, corner_radius=6, command=self.usun_maske, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
+        self.btn_del_mask = ctk.CTkButton(ramka_maski, text=self.t["mask_del"], image=self.icons.get("layer_del"), width=60, height=28, corner_radius=6, command=self.usun_maske, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_del_mask.pack(side="left", padx=2, expand=True)
 
         ramka_strzalek = ctk.CTkFrame(self.panel_prawy, fg_color="transparent")
@@ -473,6 +481,7 @@ class PyPhoto(ctk.CTk):
 
         self.panel_listy_warstw = ctk.CTkScrollableFrame(self.panel_prawy, fg_color="transparent", corner_radius=6, width=scroll_prawy_w)
         self.panel_listy_warstw.pack(fill="both", expand=True, padx=10, pady=5)
+        self.uaktywnij_autoukrywanie_paska(self.panel_listy_warstw)
 
         self.bind("<Control-z>", lambda e: self.cofnij())
         self.bind("<Command-z>", lambda e: self.cofnij()) 
@@ -484,20 +493,45 @@ class PyPhoto(ctk.CTk):
 
         self.utworz_menu()
 
+    def uaktywnij_autoukrywanie_paska(self, ramka_skrolowana):
+        def sprawdz_pasek(event=None):
+            try:
+                canvas_h = ramka_skrolowana._parent_canvas.winfo_height()
+                content_h = ramka_skrolowana._parent_frame.winfo_reqheight()
+                if content_h <= canvas_h:
+                    ramka_skrolowana._scrollbar.grid_forget()
+                else:
+                    ramka_skrolowana._scrollbar.grid(row=0, column=1, sticky="ns")
+            except Exception:
+                pass
+                
+        ramka_skrolowana._parent_canvas.bind("<Configure>", sprawdz_pasek, add="+")
+        ramka_skrolowana._parent_frame.bind("<Configure>", sprawdz_pasek, add="+")
+        self.after(100, sprawdz_pasek)
+
     def utworz_menu(self):
-        menubar = tk.Menu(self)
+        if sys.platform == "win32":
+            domyslna_czcionka_menu = tkfont.nametofont("TkMenuFont")
+            domyslna_czcionka_menu.configure(size=11, family="Segoe UI")
+            czcionka_menu = domyslna_czcionka_menu
+        else:
+            czcionka_menu = ("Arial", 14)
+            
+        self.option_add('*tearOff', False)
         
-        menu_plik = tk.Menu(menubar, tearoff=0)
+        menubar = tk.Menu(self, font=czcionka_menu)
+        
+        menu_plik = tk.Menu(menubar, font=czcionka_menu)
         menu_plik.add_command(label=self.t["open"], command=self.otworz_obraz)
         menu_plik.add_command(label=self.t["save"], command=self.zapisz_obraz)
         menubar.add_cascade(label=self.t.get("menu_file", "Plik"), menu=menu_plik)
         
-        menu_edycja = tk.Menu(menubar, tearoff=0)
+        menu_edycja = tk.Menu(menubar, font=czcionka_menu)
         self.menu_edycja = menu_edycja
         menu_edycja.add_command(label=self.t["undo"], command=self.cofnij, state="disabled" if not self.historia else "normal")
         menubar.add_cascade(label=self.t.get("menu_edit", "Edycja"), menu=menu_edycja)
         
-        menu_obraz = tk.Menu(menubar, tearoff=0)
+        menu_obraz = tk.Menu(menubar, font=czcionka_menu)
         menu_obraz.add_command(label=self.t["rotate"], command=self.obroc_obraz)
         menu_obraz.add_command(label=self.t["flip_h"], command=self.odbij_w_poziomie)
         menu_obraz.add_command(label=self.t["flip_v"], command=self.odbij_w_pionie)
@@ -505,13 +539,13 @@ class PyPhoto(ctk.CTk):
         menu_obraz.add_command(label=self.t["remove_bg"], command=self.usun_tlo)
         menubar.add_cascade(label=self.t.get("menu_image", "Obraz"), menu=menu_obraz)
         
-        menu_narzedzia = tk.Menu(menubar, tearoff=0)
+        menu_narzedzia = tk.Menu(menubar, font=czcionka_menu)
         menu_narzedzia.add_command(label=self.t["move"], command=lambda: self.ustaw_narzedzie('move'))
         menu_narzedzia.add_command(label=self.t["brush"], command=lambda: self.ustaw_narzedzie('brush'))
         menu_narzedzia.add_command(label=self.t["fill"], command=lambda: self.ustaw_narzedzie('fill'))
         menu_narzedzia.add_command(label=self.t["text"], command=lambda: self.ustaw_narzedzie('text'))
         
-        menu_ksztalty = tk.Menu(menu_narzedzia, tearoff=0)
+        menu_ksztalty = tk.Menu(menu_narzedzia, font=czcionka_menu)
         menu_ksztalty.add_command(label=self.t["shape_rect"], command=lambda: self.wybierz_ksztalt(self.t["shape_rect"]))
         menu_ksztalty.add_command(label=self.t["shape_ellipse"], command=lambda: self.wybierz_ksztalt(self.t["shape_ellipse"]))
         menu_ksztalty.add_command(label=self.t["shape_line"], command=lambda: self.wybierz_ksztalt(self.t["shape_line"]))
@@ -521,7 +555,7 @@ class PyPhoto(ctk.CTk):
         
         menubar.add_cascade(label=self.t.get("menu_tools", "Narzędzia"), menu=menu_narzedzia)
         
-        menu_filtry = tk.Menu(menubar, tearoff=0)
+        menu_filtry = tk.Menu(menubar, font=czcionka_menu)
         for key in self.klucze_filtrow:
             menu_filtry.add_command(label=self.t[key], command=lambda k=key: self.zastosuj_wybrany_filtr(self.t[k]))
         menubar.add_cascade(label=self.t.get("menu_filters", "Filtry"), menu=menu_filtry)
@@ -559,11 +593,11 @@ class PyPhoto(ctk.CTk):
 
     def stworz_pole_px(self, rodzic, tekst, rzad, kolumna):
         ramka = ctk.CTkFrame(rodzic, fg_color="transparent")
-        ramka.grid(row=rzad, column=kolumna, padx=2, pady=2, sticky="ew")
+        ramka.grid(row=rzad, column=kolumna, padx=1, pady=2, sticky="ew")
         lbl = ctk.CTkLabel(ramka, text=tekst, font=("Arial", 11))
         lbl.pack(side="left")
-        entry = ctk.CTkEntry(ramka, height=28, width=40, corner_radius=4, font=("Arial", 11))
-        entry.pack(side="left", padx=2, expand=True, fill="x")
+        entry = ctk.CTkEntry(ramka, height=28, width=45, corner_radius=4, font=("Arial", 11))
+        entry.pack(side="left", padx=1, expand=True, fill="x")
         return entry, lbl
 
     def zamykanie_okna(self):
@@ -815,8 +849,7 @@ class PyPhoto(ctk.CTk):
             
             is_active = (i == self.aktywna_warstwa)
             
-            # Wyróżnienie aktywnej warstwy szarym tłem pasującym do Dark Mode
-            kolor_tla = "#666666" if is_active else "transparent"
+            kolor_tla = "#333333" if is_active else "transparent"
             kolor_hover = "#444444" if is_active else "#333"
             grubosc_ramki = 2 if is_active else 1
             
