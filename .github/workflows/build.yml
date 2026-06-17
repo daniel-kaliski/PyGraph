@@ -1,4 +1,4 @@
-name: Build PyGraph
+name: Build PyPhoto
 
 on:
   push:
@@ -29,26 +29,26 @@ jobs:
         pip install customtkinter Pillow "rembg[cpu]" pyinstaller
 
     - name: Kompilacja przez PyInstaller
-      run: pyinstaller PyGraph.spec
+      run: pyinstaller PyPhoto.spec
 
     - name: Pakowanie aplikacji (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         cd dist
-        zip -r -y PyGraph-macOS.zip PyGraph.app
+        zip -r -y PyPhoto-macOS.zip PyPhoto.app
 
     - name: Przesłanie gotowego programu (macOS)
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: PyGraph-macOS
-        path: dist/PyGraph-macOS.zip
+        name: PyPhoto-macOS
+        path: dist/PyPhoto-macOS.zip
         retention-days: 7
 
     - name: Przesłanie gotowego programu (Windows)
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: PyGraph-Windows
-        path: dist/PyGraph/
+        name: PyPhoto-Windows
+        path: dist/PyPhoto/
         retention-days: 7
