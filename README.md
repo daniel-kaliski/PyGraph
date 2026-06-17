@@ -42,28 +42,6 @@ Working with PyPhoto is fast and intuitive thanks to built-in shortcuts (they wo
 
 To run the application locally, make sure you have Python installed (version 3.8+).
 
-1. Clone the repository:
-```bash
-   git clone https://github.com/daniel-kaliski/PyPhoto.git
-   cd PyPhoto
-
-2.Install the required libraries:
-   pip install customtkinter Pillow rembg
-
+1. Clone the repository: ```bash pip install customtkinter Pillow rembg
+2. Install the required libraries:
 3. Run the application:
-   python PyPhoto.py
-
-**Technologies Used**
-
-CustomTkinter: A modern, theme-supporting graphical user interface.
-
-Pillow (PIL): The main engine for pixel grid processing, Alpha channel manipulation, and image composition.
-
-rembg: A machine learning tool for precise background removal.
-
-**Screenshot**
-
-**License**
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0). Detailed information can be found in the LICENSE file or at opensource.org/license/gpl-3.0.
-
-Author: Daniel Kaliski
