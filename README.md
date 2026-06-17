@@ -51,7 +51,7 @@ To run the application locally, make sure you have Python installed (version 3.8
    pip install customtkinter Pillow rembg
 3. Run the application:
 ```bash
-   python PyPhoto.py
+   python PyPhoto.py```
 
 **Technologies Used**
 
