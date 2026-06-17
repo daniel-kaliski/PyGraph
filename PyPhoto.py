@@ -33,13 +33,21 @@ import locale
 TEXTS = {
     "pl": {
         "title": "PyPhoto - Image Editor",
+        "menu_file": "Plik",
+        "menu_edit": "Edycja",
+        "menu_image": "Obraz",
+        "menu_tools": "Narzędzia",
+        "menu_shapes": "Kształty",
+        "menu_filters": "Filtry",
+        "active_tool": "Aktywne narzędzie:",
+        "none": "Brak",
         "tools": "Narzędzia",
-        "open": " Otwórz",
-        "undo": " Cofnij",
+        "open": "Otwórz obraz...",
+        "undo": "Cofnij (Undo)",
         "transform": "Transformacje:",
-        "rotate": " Obróć o 90°",
-        "flip_h": " Odbij w poziomie",
-        "flip_v": " Odbij w pionie",
+        "rotate": "Obróć o 90°",
+        "flip_h": "Odbij w poziomie",
+        "flip_v": "Odbij w pionie",
         "adjust": "Dopasowanie warstwy:",
         "brightness": "Jasność",
         "contrast": "Kontrast",
@@ -47,18 +55,18 @@ TEXTS = {
         "sharpness": "Ostrość",
         "scale": "Skala warstwy",
         "interactive": "Narzędzia interaktywne:",
-        "move": " Przesuń",
-        "brush": " Pędzel",
-        "fill": " Wypełnij",
-        "text": " Tekst",
+        "move": "Przesuń",
+        "brush": "Pędzel",
+        "fill": "Wypełnij",
+        "text": "Tekst",
         "shape_rect": "Prostokąt",
         "shape_ellipse": "Elipsa",
         "shape_line": "Linia",
         "shape_triangle": "Trójkąt",
         "shape_rounded": "Zaokr. Prostokąt",
-        "color": " Kolor",
-        "size": "Grubość narzędzia",
-        "font_size": "Wielkość tekstu",
+        "color": "Wybierz kolor",
+        "size": "Grubość:",
+        "font_size": "Wielkość:",
         "effects": "Filtry (na warstwie):",
         "effects_placeholder": "Wybierz filtr...",
         "bw": "Czarno-biały",
@@ -71,27 +79,27 @@ TEXTS = {
         "smooth": "Wygładzenie",
         "posterize": "Plakatowanie",
         "solarize": "Solaryzacja",
-        "remove_bg": " Usuń tło",
-        "crop": "Kadrowanie (Cały obszar):",
-        "crop_on": " Aktywuj ramkę",
-        "crop_off": " Wyłącz ramkę",
-        "crop_apply": " Kadruj",
-        "save": " Eksportuj obraz",
+        "remove_bg": "Usuń tło (AI)",
+        "crop": "Kadrowanie:",
+        "crop_on": "Aktywuj ramkę",
+        "crop_off": "Wyłącz ramkę",
+        "crop_apply": "Kadruj",
+        "save": "Eksportuj obraz...",
         "layers": "WARSTWY",
-        "layer_add": " Nowa",
-        "layer_insert": " Wstaw",
-        "layer_del": " Usuń",
-        "mask_add": " Maska",
-        "mask_del": " Maska",
-        "mask_edit": " Maska",
-        "img_edit": " Obraz",
+        "layer_add": "Nowa",
+        "layer_insert": "Wstaw",
+        "layer_del": "Usuń",
+        "mask_add": "Maska",
+        "mask_del": "Maska",
+        "mask_edit": "Maska",
+        "img_edit": "Obraz",
         "blend": "Tryb mieszania:",
         "rename_title": "Zmiana nazwy",
         "rename_prompt": "Podaj nową nazwę warstwy:",
         "opacity": "Krycie:",
         "bg_layer": "Tło",
         "new_layer": "Warstwa",
-        "help": "Wczytaj obrazek, by rozpocząć projekt",
+        "help": "Wczytaj z menu: Plik > Otwórz",
         "width": "Szer:",
         "height": "Wys:",
         "err_open": "Nie udało się otworzyć:",
@@ -104,13 +112,21 @@ TEXTS = {
     },
     "en": {
         "title": "PyPhoto - Image Editor",
+        "menu_file": "File",
+        "menu_edit": "Edit",
+        "menu_image": "Image",
+        "menu_tools": "Tools",
+        "menu_shapes": "Shapes",
+        "menu_filters": "Filters",
+        "active_tool": "Active tool:",
+        "none": "None",
         "tools": "Tools",
-        "open": " Open",
-        "undo": " Undo",
+        "open": "Open image...",
+        "undo": "Undo",
         "transform": "Transformations:",
-        "rotate": " Rotate 90°",
-        "flip_h": " Flip Horizontally",
-        "flip_v": " Flip Vertically",
+        "rotate": "Rotate 90°",
+        "flip_h": "Flip Horizontally",
+        "flip_v": "Flip Vertically",
         "adjust": "Layer Adjustments:",
         "brightness": "Brightness",
         "contrast": "Contrast",
@@ -118,18 +134,18 @@ TEXTS = {
         "sharpness": "Sharpness",
         "scale": "Layer Scale",
         "interactive": "Interactive Tools:",
-        "move": " Move",
-        "brush": " Brush",
-        "fill": " Fill",
-        "text": " Text",
+        "move": "Move",
+        "brush": "Brush",
+        "fill": "Fill",
+        "text": "Text",
         "shape_rect": "Rectangle",
         "shape_ellipse": "Ellipse",
         "shape_line": "Line",
         "shape_triangle": "Triangle",
         "shape_rounded": "Rounded Rect",
-        "color": " Color",
-        "size": "Tool Size",
-        "font_size": "Font Size",
+        "color": "Select Color",
+        "size": "Thickness:",
+        "font_size": "Size:",
         "effects": "Filters:",
         "effects_placeholder": "Select filter...",
         "bw": "Black & White",
@@ -142,27 +158,27 @@ TEXTS = {
         "smooth": "Smooth",
         "posterize": "Posterize",
         "solarize": "Solarize",
-        "remove_bg": " Remove BG",
+        "remove_bg": "Remove BG (AI)",
         "crop": "Cropping:",
-        "crop_on": " Activate Frame",
-        "crop_off": " Deactivate Frame",
-        "crop_apply": " Crop",
-        "save": " Export Image",
+        "crop_on": "Activate Frame",
+        "crop_off": "Deactivate Frame",
+        "crop_apply": "Crop",
+        "save": "Export Image...",
         "layers": "LAYERS",
-        "layer_add": " Add",
-        "layer_insert": " Insert",
-        "layer_del": " Delete",
-        "mask_add": " Mask",
-        "mask_del": " Mask",
-        "mask_edit": " Mask",
-        "img_edit": " Image",
+        "layer_add": "Add",
+        "layer_insert": "Insert",
+        "layer_del": "Delete",
+        "mask_add": "Mask",
+        "mask_del": "Mask",
+        "mask_edit": "Mask",
+        "img_edit": "Image",
         "blend": "Blend Mode:",
         "rename_title": "Rename",
         "rename_prompt": "Enter new layer name:",
         "opacity": "Opacity:",
         "bg_layer": "Background",
         "new_layer": "Layer",
-        "help": "Load an image to start the project",
+        "help": "Load from menu: File > Open",
         "width": "W:",
         "height": "H:",
         "err_open": "Failed to open:",
@@ -236,21 +252,9 @@ class PyPhoto(ctk.CTk):
                     print(f"Nie można załadować {name}: {e}")
             return None
 
-        self.icons["open"] = load_icon("folder_open.png")
-        self.icons["undo"] = load_icon("undo.png")
-        self.icons["rotate"] = load_icon("rotate_90_degrees_cw.png")
-        self.icons["flip_h"] = load_icon("split_scene.png")
-        self.icons["flip_v"] = load_icon("split_scene_2.png")
         self.icons["check"] = load_icon("check.png")
-        self.icons["move"] = load_icon("open_with.png") or load_icon("drag_pan.png")
-        self.icons["brush"] = load_icon("brush.png")
-        self.icons["fill"] = load_icon("format_color_fill.png")
-        self.icons["text"] = load_icon("text_fields.png")
-        self.icons["rect"] = load_icon("rectangle.png")
         self.icons["color"] = load_icon("palette.png")
-        self.icons["magic"] = load_icon("cleaning_services.png")
         self.icons["crop"] = load_icon("crop.png")
-        self.icons["save"] = load_icon("file_export.png") or load_icon("save.png")
         self.icons["layer_add"] = load_icon("add.png")
         self.icons["layer_insert"] = load_icon("add_photo_alternate.png")
         self.icons["layer_del"] = load_icon("delete.png")
@@ -312,6 +316,7 @@ class PyPhoto(ctk.CTk):
         self.warstwa_podgladowa = None
         self.blokuj_podglad = False
         self.text_resize_started = False
+        self.aktywny_ksztalt = self.t["shape_rect"]
         
         self.klucze_filtrow = ["bw", "blur", "sharpen", "invert", "emboss", "edges", "contour", "smooth", "posterize", "solarize"]
 
@@ -331,91 +336,50 @@ class PyPhoto(ctk.CTk):
         scroll_w = 420 if sys.platform == "win32" else 330
         self.panel_narzedzi = ctk.CTkScrollableFrame(self.panel_lewy, fg_color="transparent", width=scroll_w)
         self.panel_narzedzi.pack(side="top", fill="both", expand=True)
-
-        self.lbl_narzedzia = ctk.CTkLabel(self.panel_narzedzi, text=self.t["tools"], font=ctk.CTkFont(size=20, weight="bold"))
-        self.lbl_narzedzia.pack(pady=(0, 10))
-
-        self.btn_otworz = ctk.CTkButton(self.panel_narzedzi, text=self.t["open"], image=self.icons.get("open"), height=32, corner_radius=6, command=self.otworz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_otworz.pack(pady=5, padx=20, fill="x")
         
-        self.btn_cofnij = ctk.CTkButton(self.panel_narzedzi, text=self.t["undo"], image=self.icons.get("undo"), height=32, corner_radius=6, fg_color="transparent", border_width=1, border_color="white", text_color="gray50", state="disabled", command=self.cofnij, hover_color="#333")
-        self.btn_cofnij.pack(pady=5, padx=20, fill="x")
-
-        self.lbl_transform = ctk.CTkLabel(self.panel_narzedzi, text=self.t["transform"], font=ctk.CTkFont(weight="bold"))
-        self.lbl_transform.pack(pady=(15, 0))
-        
-        self.btn_obroc = ctk.CTkButton(self.panel_narzedzi, text=self.t["rotate"], image=self.icons.get("rotate"), height=32, corner_radius=6, command=self.obroc_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_obroc.pack(pady=(5,2), padx=20, fill="x")
-        
-        self.btn_flip_h = ctk.CTkButton(self.panel_narzedzi, text=self.t["flip_h"], image=self.icons.get("flip_h"), height=32, corner_radius=6, command=self.odbij_w_poziomie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_flip_h.pack(pady=2, padx=20, fill="x")
-        
-        self.btn_flip_v = ctk.CTkButton(self.panel_narzedzi, text=self.t["flip_v"], image=self.icons.get("flip_v"), height=32, corner_radius=6, command=self.odbij_w_pionie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_flip_v.pack(pady=(2,5), padx=20, fill="x")
-
-        self.lbl_interactive = ctk.CTkLabel(self.panel_narzedzi, text=self.t["interactive"], font=ctk.CTkFont(weight="bold"))
-        self.lbl_interactive.pack(pady=(20, 5))
-
-        ramka_narzedzi = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
-        ramka_narzedzi.pack(pady=5, padx=15, fill="x")
-        ramka_narzedzi.grid_columnconfigure(0, weight=1)
-        ramka_narzedzi.grid_columnconfigure(1, weight=1)
-        
-        self.btn_move = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["move"], 'move', self.icons.get("move"))
-        self.btn_move.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-        
-        self.btn_brush = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["brush"], 'brush', self.icons.get("brush"))
-        self.btn_brush.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
-        
-        self.btn_fill = self.stworz_przycisk_narzedzia(ramka_narzedzi, self.t["fill"], 'fill', self.icons.get("fill"))
-        self.btn_fill.grid(row=1, column=0, padx=2, pady=2, sticky="ew")
-        
-        self.btn_color = ctk.CTkButton(ramka_narzedzi, text=self.t["color"], image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor, fg_color="transparent", border_width=1, border_color="white", text_color=self.current_color, hover_color="#333")
-        self.btn_color.grid(row=1, column=1, padx=2, pady=2, sticky="ew")
-        
-        self.combo_shape = ctk.CTkComboBox(ramka_narzedzi, values=[self.t["shape_rect"], self.t["shape_ellipse"], self.t["shape_line"], self.t["shape_triangle"], self.t["shape_rounded"]], state="readonly", command=lambda e: self.ustaw_narzedzie('shape'), fg_color="#242424", border_color="gray50", text_color="white")
-        self.combo_shape.grid(row=2, column=0, columnspan=2, padx=2, pady=2, sticky="ew")
-        self.combo_shape.set(self.t["shape_rect"])
+        self.lbl_aktywne_narz = ctk.CTkLabel(self.panel_narzedzi, text=f"{self.t['active_tool']} {self.t['none']}", font=ctk.CTkFont(size=14, weight="bold"), text_color="#00ff00")
+        self.lbl_aktywne_narz.pack(pady=(0, 10))
 
         ramka_opcji = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
-        ramka_opcji.pack(pady=10, padx=15, fill="x")
+        ramka_opcji.pack(pady=5, padx=15, fill="x")
+        
+        self.btn_color = ctk.CTkButton(ramka_opcji, text=self.t["color"], image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor, fg_color="transparent", border_width=1, border_color="white", text_color=self.current_color, hover_color="#333")
+        self.btn_color.pack(fill="x", pady=5)
         
         ramka_grubosc = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
-        ramka_grubosc.pack(fill="x", pady=2)
-        self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=130, anchor="w")
+        ramka_grubosc.pack(fill="x", pady=5)
+        self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=90, anchor="w")
         self.lbl_size.pack(side="left", padx=(0, 5))
         self.slider_size = ctk.CTkSlider(ramka_grubosc, from_=1, to=100, button_color="#888", button_hover_color="#bbb")
         self.slider_size.set(5)
         self.slider_size.pack(side="right", expand=True, fill="x")
         
         ramka_czcionka_rodzina = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
-        ramka_czcionka_rodzina.pack(fill="x", pady=2)
-        self.btn_text = self.stworz_przycisk_narzedzia(ramka_czcionka_rodzina, self.t["text"], 'text', self.icons.get("text"))
-        self.btn_text.pack(side="left", padx=(0, 5))
-        
+        ramka_czcionka_rodzina.pack(fill="x", pady=5)
         czcionki_systemowe = sorted([f for f in tkfont.families() if not f.startswith('@')])
         if not czcionki_systemowe: czcionki_systemowe = ["Arial"]
-        
         self.combo_font = ctk.CTkComboBox(ramka_czcionka_rodzina, values=czcionki_systemowe, state="readonly", command=self.zmien_czcionke_tekstu, fg_color="#242424", border_color="gray50", text_color="white")
-        self.combo_font.pack(side="right", expand=True, fill="x")
+        self.combo_font.pack(expand=True, fill="x")
         self.combo_font.set("Arial" if "Arial" in czcionki_systemowe else czcionki_systemowe[0])
 
         ramka_czcionka = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
-        ramka_czcionka.pack(fill="x", pady=2)
-        self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=130, anchor="w")
+        ramka_czcionka.pack(fill="x", pady=5)
+        self.lbl_font_size = ctk.CTkLabel(ramka_czcionka, text=self.t["font_size"], width=90, anchor="w")
         self.lbl_font_size.pack(side="left", padx=(0, 5))
         self.slider_font_size = ctk.CTkSlider(ramka_czcionka, from_=10, to=300, button_color="#888", button_hover_color="#bbb", command=self.zmien_rozmiar_tekstu)
         self.slider_font_size.set(40)
         self.slider_font_size.pack(side="right", expand=True, fill="x")
         self.slider_font_size.bind("<ButtonRelease-1>", lambda e: self.zatwierdz_rozmiar_tekstu())
 
-        self.lbl_adjust = ctk.CTkLabel(self.panel_narzedzi, text=self.t["adjust"], font=ctk.CTkFont(weight="bold"))
-        self.lbl_adjust.pack(pady=(20, 0))
+        ctk.CTkFrame(self.panel_narzedzi, height=2, fg_color="#333").pack(fill="x", pady=15)
+
+        self.lbl_adjust = ctk.CTkLabel(self.panel_narzedzi, text=self.t["adjust"], font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_adjust.pack(pady=(0, 10))
 
         for nazwa, attr in [("brightness", "slider_brightness"), ("contrast", "slider_contrast"), ("saturation", "slider_saturation"), ("sharpness", "slider_sharpness"), ("scale", "slider_scale")]:
             ramka_suwaka = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
             ramka_suwaka.pack(fill="x", padx=15, pady=2)
-            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=130, anchor="w")
+            lbl = ctk.CTkLabel(ramka_suwaka, text=self.t[nazwa], width=110, anchor="w")
             lbl.pack(side="left", padx=(0, 5))
             if nazwa in ["brightness", "contrast"]:
                 suwak = ctk.CTkSlider(ramka_suwaka, from_=0.1, to=2.0, command=self.podglad_suwakow)
@@ -429,20 +393,12 @@ class PyPhoto(ctk.CTk):
             setattr(self, attr, suwak)
             setattr(self, f"lbl_{nazwa}", lbl)
 
-        self.lbl_efekty = ctk.CTkLabel(self.panel_narzedzi, text=self.t["effects"], font=ctk.CTkFont(weight="bold"))
-        self.lbl_efekty.pack(pady=(20, 5))
-        
-        self.combo_filtry = ctk.CTkComboBox(self.panel_narzedzi, values=[self.t[k] for k in self.klucze_filtrow], state="readonly", corner_radius=6, fg_color="#242424", border_color="white", text_color="white", command=self.zastosuj_wybrany_filtr)
-        self.combo_filtry.pack(pady=(5,10), padx=20, fill="x")
-        self.combo_filtry.set(self.t["effects_placeholder"])
-        
-        self.btn_rembg = ctk.CTkButton(self.panel_narzedzi, text=self.t["remove_bg"], image=self.icons.get("magic"), height=32, corner_radius=6, command=self.usun_tlo, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_rembg.pack(pady=(10, 5), padx=20, fill="x")
+        ctk.CTkFrame(self.panel_narzedzi, height=2, fg_color="#333").pack(fill="x", pady=15)
 
-        self.lbl_kadrowanie = ctk.CTkLabel(self.panel_narzedzi, text=self.t["crop"], font=ctk.CTkFont(weight="bold"))
-        self.lbl_kadrowanie.pack(pady=(15, 0))
+        self.lbl_kadrowanie = ctk.CTkLabel(self.panel_narzedzi, text=self.t["crop"], font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_kadrowanie.pack(pady=(0, 10))
         
-        self.btn_crop = self.stworz_przycisk_narzedzia(self.panel_narzedzi, self.t["crop_on"], 'crop', self.icons.get("crop"))
+        self.btn_crop = ctk.CTkButton(self.panel_narzedzi, text=self.t["crop_on"], image=self.icons.get("crop"), height=32, corner_radius=6, command=lambda: self.ustaw_narzedzie('crop'), fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_crop.pack(pady=(5,5), padx=20, fill="x")
         
         self.ramka_px = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
@@ -458,6 +414,7 @@ class PyPhoto(ctk.CTk):
         self.btn_dokladne_crop = ctk.CTkButton(self.panel_narzedzi, text=self.t["crop_apply"], image=self.icons.get("check"), height=32, corner_radius=6, command=self.wykonaj_kadrowanie, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
         self.btn_dokladne_crop.pack(pady=5, padx=20, fill="x")
 
+        # Płótno na obraz
         self.panel_obrazu = ctk.CTkFrame(self)
         self.panel_obrazu.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.canvas = tk.Canvas(self.panel_obrazu, bg="gray25", highlightthickness=0)
@@ -470,6 +427,7 @@ class PyPhoto(ctk.CTk):
         self.canvas.bind("<B1-Motion>", self.on_canvas_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_release)
 
+        # Panel Prawy (Warstwy)
         self.panel_prawy = ctk.CTkFrame(self, corner_radius=0)
         self.panel_prawy.grid(row=0, column=2, sticky="nsew")
 
@@ -516,9 +474,6 @@ class PyPhoto(ctk.CTk):
         self.panel_listy_warstw = ctk.CTkScrollableFrame(self.panel_prawy, fg_color="transparent", corner_radius=6, width=scroll_prawy_w)
         self.panel_listy_warstw.pack(fill="both", expand=True, padx=10, pady=5)
 
-        self.btn_zapisz = ctk.CTkButton(self.panel_prawy, text=self.t["save"], image=self.icons.get("save"), height=36, corner_radius=6, command=self.zapisz_obraz, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333")
-        self.btn_zapisz.pack(side="bottom", pady=(10, 20), padx=20, fill="x")
-
         self.bind("<Control-z>", lambda e: self.cofnij())
         self.bind("<Command-z>", lambda e: self.cofnij()) 
         self.bind("<Control-s>", lambda e: self.zapisz_obraz())
@@ -526,6 +481,56 @@ class PyPhoto(ctk.CTk):
         self.bind("<Control-o>", lambda e: self.otworz_obraz())
         self.bind("<Command-o>", lambda e: self.otworz_obraz()) 
         self.bind("<Key>", self.obsloz_skroty_narzedzi)
+
+        self.utworz_menu()
+
+    def utworz_menu(self):
+        menubar = tk.Menu(self)
+        
+        menu_plik = tk.Menu(menubar, tearoff=0)
+        menu_plik.add_command(label=self.t["open"], command=self.otworz_obraz)
+        menu_plik.add_command(label=self.t["save"], command=self.zapisz_obraz)
+        menubar.add_cascade(label=self.t.get("menu_file", "Plik"), menu=menu_plik)
+        
+        menu_edycja = tk.Menu(menubar, tearoff=0)
+        self.menu_edycja = menu_edycja
+        menu_edycja.add_command(label=self.t["undo"], command=self.cofnij, state="disabled" if not self.historia else "normal")
+        menubar.add_cascade(label=self.t.get("menu_edit", "Edycja"), menu=menu_edycja)
+        
+        menu_obraz = tk.Menu(menubar, tearoff=0)
+        menu_obraz.add_command(label=self.t["rotate"], command=self.obroc_obraz)
+        menu_obraz.add_command(label=self.t["flip_h"], command=self.odbij_w_poziomie)
+        menu_obraz.add_command(label=self.t["flip_v"], command=self.odbij_w_pionie)
+        menu_obraz.add_separator()
+        menu_obraz.add_command(label=self.t["remove_bg"], command=self.usun_tlo)
+        menubar.add_cascade(label=self.t.get("menu_image", "Obraz"), menu=menu_obraz)
+        
+        menu_narzedzia = tk.Menu(menubar, tearoff=0)
+        menu_narzedzia.add_command(label=self.t["move"], command=lambda: self.ustaw_narzedzie('move'))
+        menu_narzedzia.add_command(label=self.t["brush"], command=lambda: self.ustaw_narzedzie('brush'))
+        menu_narzedzia.add_command(label=self.t["fill"], command=lambda: self.ustaw_narzedzie('fill'))
+        menu_narzedzia.add_command(label=self.t["text"], command=lambda: self.ustaw_narzedzie('text'))
+        
+        menu_ksztalty = tk.Menu(menu_narzedzia, tearoff=0)
+        menu_ksztalty.add_command(label=self.t["shape_rect"], command=lambda: self.wybierz_ksztalt(self.t["shape_rect"]))
+        menu_ksztalty.add_command(label=self.t["shape_ellipse"], command=lambda: self.wybierz_ksztalt(self.t["shape_ellipse"]))
+        menu_ksztalty.add_command(label=self.t["shape_line"], command=lambda: self.wybierz_ksztalt(self.t["shape_line"]))
+        menu_ksztalty.add_command(label=self.t["shape_triangle"], command=lambda: self.wybierz_ksztalt(self.t["shape_triangle"]))
+        menu_ksztalty.add_command(label=self.t["shape_rounded"], command=lambda: self.wybierz_ksztalt(self.t["shape_rounded"]))
+        menu_narzedzia.add_cascade(label=self.t.get("menu_shapes", "Kształty"), menu=menu_ksztalty)
+        
+        menubar.add_cascade(label=self.t.get("menu_tools", "Narzędzia"), menu=menu_narzedzia)
+        
+        menu_filtry = tk.Menu(menubar, tearoff=0)
+        for key in self.klucze_filtrow:
+            menu_filtry.add_command(label=self.t[key], command=lambda k=key: self.zastosuj_wybrany_filtr(self.t[k]))
+        menubar.add_cascade(label=self.t.get("menu_filters", "Filtry"), menu=menu_filtry)
+        
+        self.config(menu=menubar)
+
+    def wybierz_ksztalt(self, ksztalt):
+        self.aktywny_ksztalt = ksztalt
+        self.ustaw_narzedzie('shape')
 
     def wykryj_jezyk(self):
         try:
@@ -572,50 +577,29 @@ class PyPhoto(ctk.CTk):
             pass 
 
     def przelacz_jezyk(self):
-        stary_jezyk = self.lang
-        obecny_wybor_filtra = self.combo_filtry.get()
-        wybrany_klucz_filtra = "effects_placeholder"
-        for k in self.klucze_filtrow:
-            if TEXTS[stary_jezyk][k] == obecny_wybor_filtra:
-                wybrany_klucz_filtra = k
-                break
-                
-        obecny_wybor_ksztaltu = self.combo_shape.get()
-        wybrany_klucz_ksztaltu = "shape_rect"
-        if obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_ellipse"]: wybrany_klucz_ksztaltu = "shape_ellipse"
-        elif obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_line"]: wybrany_klucz_ksztaltu = "shape_line"
-        elif obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_triangle"]: wybrany_klucz_ksztaltu = "shape_triangle"
-        elif obecny_wybor_ksztaltu == TEXTS[stary_jezyk]["shape_rounded"]: wybrany_klucz_ksztaltu = "shape_rounded"
-
+        stare_t = self.t
         self.lang = "en" if self.lang == "pl" else "pl"
         self.t = TEXTS[self.lang]
+        
+        for w in self.warstwy:
+            if w['nazwa'] == stare_t['brush']:
+                w['nazwa'] = self.t['brush']
+            elif w['nazwa'].startswith(stare_t['new_layer'] + " "):
+                w['nazwa'] = w['nazwa'].replace(stare_t['new_layer'], self.t['new_layer'], 1)
         
         self.title(self.t["title"])
         self.btn_lang.configure(text="PL" if self.lang == "pl" else "EN")
         
-        self._update_text("lbl_narzedzia", "tools")
-        self._update_text("btn_otworz", "open")
-        self._update_text("btn_cofnij", "undo")
-        self._update_text("lbl_transform", "transform")
-        self._update_text("btn_obroc", "rotate")
-        self._update_text("btn_flip_h", "flip_h")
-        self._update_text("btn_flip_v", "flip_v")
+        self._update_text("lbl_aktywne_narz", "active_tool")
+        self._update_text("btn_color", "color")
+        self._update_text("lbl_size", "size")
+        self._update_text("lbl_font_size", "font_size")
         self._update_text("lbl_adjust", "adjust")
         self._update_text("lbl_brightness", "brightness")
         self._update_text("lbl_contrast", "contrast")
         self._update_text("lbl_saturation", "saturation")
         self._update_text("lbl_sharpness", "sharpness")
         self._update_text("lbl_scale", "scale")
-        self._update_text("lbl_interactive", "interactive")
-        self._update_text("btn_move", "move")
-        self._update_text("btn_brush", "brush")
-        self._update_text("btn_fill", "fill")
-        self._update_text("btn_text", "text")
-        self._update_text("btn_color", "color")
-        self._update_text("lbl_size", "size")
-        self._update_text("lbl_font_size", "font_size")
-        self._update_text("lbl_efekty", "effects")
-        self._update_text("btn_rembg", "remove_bg")
         self._update_text("lbl_kadrowanie", "crop")
         self._update_text("lbl_w", "width")
         self._update_text("lbl_h", "height")
@@ -628,25 +612,21 @@ class PyPhoto(ctk.CTk):
         self._update_text("btn_del_mask", "mask_del")
         self._update_text("lbl_blend", "blend")
         self._update_text("lbl_opacity", "opacity")
-        self._update_text("btn_zapisz", "save")
         self._update_text("text_label", "help")
 
-        if self.aktywne_narzedzie == 'crop':
-            self._update_text("btn_crop", "crop_off")
-        else:
-            self._update_text("btn_crop", "crop_on")
-            
-        self.combo_filtry.configure(values=[self.t[k] for k in self.klucze_filtrow])
-        if wybrany_klucz_filtra in self.klucze_filtrow:
-            self.combo_filtry.set(self.t[wybrany_klucz_filtra])
-        else:
-            self.combo_filtry.set(self.t["effects_placeholder"])
-            
-        self.combo_shape.configure(values=[self.t["shape_rect"], self.t["shape_ellipse"], self.t["shape_line"], self.t["shape_triangle"], self.t["shape_rounded"]])
-        self.combo_shape.set(self.t[wybrany_klucz_ksztaltu])
-        
-        self.zaktualizuj_styl_narzedzi()
+        if self.aktywny_ksztalt in [stare_t[k] for k in ["shape_rect", "shape_ellipse", "shape_line", "shape_triangle", "shape_rounded"]]:
+            shape_keys = ["shape_rect", "shape_ellipse", "shape_line", "shape_triangle", "shape_rounded"]
+            for key in shape_keys:
+                if self.aktywny_ksztalt == stare_t[key]:
+                    self.aktywny_ksztalt = self.t[key]
+                    break
+
         self.odswiez_panel_warstw()
+        self.utworz_menu()
+        
+        temp_tool = self.aktywne_narzedzie
+        self.aktywne_narzedzie = None
+        self.ustaw_narzedzie(temp_tool) 
 
         if not self.warstwy: 
             self.canvas.delete("all")
@@ -662,30 +642,6 @@ class PyPhoto(ctk.CTk):
         elif char == 't': self.ustaw_narzedzie('text')
         elif char == 'c': self.ustaw_narzedzie('crop')
         elif char == 'f': self.ustaw_narzedzie('fill')
-
-    def stworz_przycisk_narzedzia(self, rodzic, tekst, wartosc, ikona=None):
-        return ctk.CTkButton(rodzic, text=tekst, image=ikona, height=32, width=50, corner_radius=6, 
-                             fg_color="transparent", border_width=1, border_color="white", 
-                             text_color="white", hover_color="#333", command=lambda: self.ustaw_narzedzie(wartosc))
-
-    def zaktualizuj_styl_narzedzi(self):
-        act = {"fg_color": "transparent", "text_color": "white", "border_width": 2, "border_color": "white"}
-        inact = {"fg_color": "transparent", "text_color": "white", "border_width": 1, "border_color": "white"}
-        
-        self.btn_move.configure(**(act if self.aktywne_narzedzie == 'move' else inact))
-        self.btn_brush.configure(**(act if self.aktywne_narzedzie == 'brush' else inact))
-        self.btn_text.configure(**(act if self.aktywne_narzedzie == 'text' else inact))
-        self.btn_fill.configure(**(act if self.aktywne_narzedzie == 'fill' else inact))
-        
-        if self.aktywne_narzedzie == 'shape':
-            self.combo_shape.configure(border_color="white", border_width=2)
-        else:
-            self.combo_shape.configure(border_color="gray50", border_width=1)
-        
-        if self.aktywne_narzedzie == 'crop':
-            self.btn_crop.configure(text=self.t["crop_off"], **act)
-        else:
-            self.btn_crop.configure(text=self.t["crop_on"], **inact)
 
     def wybierz_kolor(self):
         kolor = colorchooser.askcolor(color=self.current_color)[1]
@@ -715,7 +671,8 @@ class PyPhoto(ctk.CTk):
                 self.doc_size = img.size
                 self.warstwy = []
                 self.historia = []
-                self.btn_cofnij.configure(state="disabled", fg_color="transparent", text_color="gray50", border_color="white")
+                if hasattr(self, 'menu_edycja'):
+                    self.menu_edycja.entryconfig(0, state="disabled")
                 
                 nazwa = os.path.basename(sciezka)[:15]
                 self.dodaj_warstwe(img, nazwa, 0, 0)
@@ -856,26 +813,30 @@ class PyPhoto(ctk.CTk):
         for i in reversed(range(len(self.warstwy))):
             w = self.warstwy[i]
             
-            ramka = ctk.CTkFrame(self.panel_listy_warstw, fg_color="transparent", corner_radius=6)
+            is_active = (i == self.aktywna_warstwa)
+            
+            # Wyróżnienie aktywnej warstwy szarym tłem pasującym do Dark Mode
+            kolor_tla = "#666666" if is_active else "transparent"
+            kolor_hover = "#444444" if is_active else "#333"
+            grubosc_ramki = 2 if is_active else 1
+            
+            ramka = ctk.CTkFrame(self.panel_listy_warstw, fg_color=kolor_tla, corner_radius=6)
             ramka.pack(fill="x", pady=3, padx=2)
             
-            is_active = (i == self.aktywna_warstwa)
-            bw = 2 if is_active else 1
-            
             ikona = self.icons.get("vis_on") if w['widoczna'] else self.icons.get("vis_off")
-            btn_vis = ctk.CTkButton(ramka, text="", image=ikona, width=30, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333", command=lambda idx=i: self.przelacz_widocznosc(idx))
+            btn_vis = ctk.CTkButton(ramka, text="", image=ikona, width=30, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color=kolor_hover, command=lambda idx=i: self.przelacz_widocznosc(idx))
             btn_vis.pack(side="left", padx=5, pady=5)
             
-            btn_name = ctk.CTkButton(ramka, text=w['nazwa'], fg_color="transparent", border_width=bw, border_color="white", text_color="white", hover_color="#333", anchor="w", command=lambda idx=i: self.ustaw_aktywna_warstwe(idx))
+            btn_name = ctk.CTkButton(ramka, text=w['nazwa'], fg_color="transparent", border_width=grubosc_ramki, border_color="white", text_color="white", hover_color=kolor_hover, anchor="w", command=lambda idx=i: self.ustaw_aktywna_warstwe(idx))
             btn_name.pack(side="left", fill="x", expand=True, padx=5, pady=5)
             
             if w.get('maska') is not None:
                 tekst_maski = self.t["mask_edit"] if w.get('edycja_maski') else self.t["img_edit"]
                 ikona_maski = self.icons.get("mask") if w.get('edycja_maski') else self.icons.get("image")
-                btn_mask_toggle = ctk.CTkButton(ramka, text=tekst_maski, image=ikona_maski, width=50, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color="#333", command=lambda idx=i: self.przelacz_edycje_maski(idx))
+                btn_mask_toggle = ctk.CTkButton(ramka, text=tekst_maski, image=ikona_maski, width=50, fg_color="transparent", border_width=1, border_color="white", text_color="white", hover_color=kolor_hover, command=lambda idx=i: self.przelacz_edycje_maski(idx))
                 btn_mask_toggle.pack(side="left", padx=2, pady=5)
             
-            btn_rename = ctk.CTkButton(ramka, text="", image=self.icons.get("edit"), width=25, fg_color="transparent", border_width=1, border_color="white", hover_color="#333", command=lambda idx=i: self.zmien_nazwe_warstwy(idx))
+            btn_rename = ctk.CTkButton(ramka, text="", image=self.icons.get("edit"), width=25, fg_color="transparent", border_width=1, border_color="white", hover_color=kolor_hover, command=lambda idx=i: self.zmien_nazwe_warstwy(idx))
             btn_rename.pack(side="right", padx=2, pady=5)
 
     def komponuj_i_wyswietl(self):
@@ -982,7 +943,8 @@ class PyPhoto(ctk.CTk):
             kopia_warstw.append(kopia)
             
         self.historia.append((self.doc_size, self.aktywna_warstwa, kopia_warstw))
-        self.btn_cofnij.configure(state="normal", fg_color="transparent", border_width=1, border_color="white", text_color="white")
+        if hasattr(self, 'menu_edycja'):
+            self.menu_edycja.entryconfig(0, state="normal")
 
     def cofnij(self):
         self.warstwa_podgladowa = None
@@ -995,10 +957,14 @@ class PyPhoto(ctk.CTk):
             stan = self.historia.pop()
             self.doc_size, self.aktywna_warstwa, warstwy = stan
             self.warstwy = warstwy
-            if not self.historia: 
-                self.btn_cofnij.configure(state="disabled", fg_color="transparent", border_width=1, border_color="white", text_color="gray50")
+            if not self.historia and hasattr(self, 'menu_edycja'): 
+                self.menu_edycja.entryconfig(0, state="disabled")
             self.resetuj_suwaki()
-            if self.aktywne_narzedzie: self.ustaw_narzedzie(self.aktywne_narzedzie)
+            
+            temp_tool = self.aktywne_narzedzie
+            self.aktywne_narzedzie = None
+            self.ustaw_narzedzie(temp_tool) 
+            
             self.odswiez_panel_warstw()
             self.komponuj_i_wyswietl()
 
@@ -1080,7 +1046,6 @@ class PyPhoto(ctk.CTk):
     
     def zastosuj_wybrany_filtr(self, w):
         if self.aktywna_warstwa == -1:
-            self.combo_filtry.set(self.t["effects_placeholder"])
             return
             
         k = next((key for key in self.klucze_filtrow if self.t[key] == w), None)
@@ -1095,7 +1060,6 @@ class PyPhoto(ctk.CTk):
         elif k == "posterize": self.filtr_plakatowanie()
         elif k == "solarize": self.filtr_solaryzacja()
         
-        self.combo_filtry.set(self.t["effects_placeholder"])
         self.canvas.focus_set()
 
     def obroc_obraz(self):
@@ -1218,40 +1182,95 @@ class PyPhoto(ctk.CTk):
         return int(rel_x * r_x), int(rel_y * r_y)
 
     def zastosuj_rysowanie(self, typ, end_x=None, end_y=None):
-        if self.aktywna_warstwa == -1: return
         self.zatwierdz_podglad()
         
-        w = self.warstwy[self.aktywna_warstwa]
-        is_mask = w.get('edycja_maski', False)
-        
+        w = None
+        is_mask = False
+        if self.aktywna_warstwa != -1 and self.warstwy:
+            w = self.warstwy[self.aktywna_warstwa]
+            is_mask = w.get('edycja_maski', False)
+            
         if typ == 'brush':
             self.zapisz_stan_do_historii()
-            if not is_mask and w.get('is_text'): w.pop('is_text', None)
             
-            if is_mask and w.get('maska') is not None:
+            if w and is_mask and w.get('maska') is not None:
+                if w.get('is_text'): w.pop('is_text', None)
                 img = w['maska']
                 r, g, b = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
                 fill_color = int(r * 0.299 + g * 0.587 + b * 0.114)
-            else:
+                
+                draw = ImageDraw.Draw(img)
+                rozmiar = int(self.slider_size.get())
+                ox = w.get('offset_x', 0)
+                oy = w.get('offset_y', 0)
+
+                if len(self.draw_points) == 1:
+                    px, py = self.draw_points[0]
+                    rx, ry = self.canvas_to_image_coords(px, py)
+                    draw.ellipse([rx - ox - rozmiar//2, ry - oy - rozmiar//2, rx - ox + rozmiar//2, ry - oy + rozmiar//2], fill=fill_color)
+                elif len(self.draw_points) > 1:
+                    real_pts = []
+                    for px, py in self.draw_points:
+                        rx, ry = self.canvas_to_image_coords(px, py)
+                        real_pts.append((rx - ox, ry - oy))
+                    draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
+
+            elif w and w['nazwa'] == self.t["brush"] and not is_mask:
+                if w.get('is_text'): w.pop('is_text', None)
                 img = w['obraz']
                 fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+                
+                draw = ImageDraw.Draw(img)
+                rozmiar = int(self.slider_size.get())
+                ox = w.get('offset_x', 0)
+                oy = w.get('offset_y', 0)
 
-            draw = ImageDraw.Draw(img)
-            rozmiar = int(self.slider_size.get())
-            ox = w.get('offset_x', 0)
-            oy = w.get('offset_y', 0)
-
-            if len(self.draw_points) > 1:
-                real_pts = []
-                for px, py in self.draw_points:
+                if len(self.draw_points) == 1:
+                    px, py = self.draw_points[0]
                     rx, ry = self.canvas_to_image_coords(px, py)
-                    real_pts.append((rx - ox, ry - oy))
-                draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
+                    draw.ellipse([rx - ox - rozmiar//2, ry - oy - rozmiar//2, rx - ox + rozmiar//2, ry - oy + rozmiar//2], fill=fill_color)
+                elif len(self.draw_points) > 1:
+                    real_pts = []
+                    for px, py in self.draw_points:
+                        rx, ry = self.canvas_to_image_coords(px, py)
+                        real_pts.append((rx - ox, ry - oy))
+                    draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
+            
+            else:
+                img = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
+                draw = ImageDraw.Draw(img)
+                rozmiar = int(self.slider_size.get())
+                fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+                
+                if len(self.draw_points) == 1:
+                    px, py = self.draw_points[0]
+                    rx, ry = self.canvas_to_image_coords(px, py)
+                    draw.ellipse([rx - rozmiar//2, ry - rozmiar//2, rx + rozmiar//2, ry + rozmiar//2], fill=fill_color)
+                elif len(self.draw_points) > 1:
+                    real_pts = [self.canvas_to_image_coords(px, py) for px, py in self.draw_points]
+                    draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
+                
+                nazwa = self.t["brush"]
+                idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
+                
+                self.warstwy.insert(idx, {
+                    'nazwa': nazwa, 
+                    'obraz': img,
+                    'widoczna': True, 
+                    'krycie': 1.0, 
+                    'tryb': 'Normal', 
+                    'maska': None, 
+                    'edycja_maski': False, 
+                    'offset_x': 0, 
+                    'offset_y': 0
+                })
+                
+                self.ustaw_aktywna_warstwe(idx)
                 
         elif typ == 'shape' and end_x and end_y:
             rx1, ry1 = self.canvas_to_image_coords(self.last_x, self.last_y)
             rx2, ry2 = self.canvas_to_image_coords(end_x, end_y)
-            shape_type = self.combo_shape.get()
+            shape_type = self.aktywny_ksztalt
             rozmiar = int(self.slider_size.get())
             fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
             
@@ -1437,7 +1456,11 @@ class PyPhoto(ctk.CTk):
         self.komponuj_i_wyswietl()
 
     def on_canvas_press(self, event):
-        if self.aktywna_warstwa == -1 or not self.aktywne_narzedzie: return
+        if not self.aktywne_narzedzie or not self.doc_size: return
+        
+        if self.aktywna_warstwa == -1 and self.aktywne_narzedzie in ['move', 'fill']: 
+            return
+            
         self.zatwierdz_podglad()
         x, y = event.x, event.y
         self.last_x, self.last_y = x, y
@@ -1446,8 +1469,9 @@ class PyPhoto(ctk.CTk):
             self.zapisz_stan_do_historii()
             self.move_start_x = x
             self.move_start_y = y
-            self.move_start_offset_x = self.warstwy[self.aktywna_warstwa].get('offset_x', 0)
-            self.move_start_offset_y = self.warstwy[self.aktywna_warstwa].get('offset_y', 0)
+            w = self.warstwy[self.aktywna_warstwa]
+            self.move_start_offset_x = w.get('offset_x', 0)
+            self.move_start_offset_y = w.get('offset_y', 0)
         elif self.aktywne_narzedzie == 'crop':
             if not self.rect_coords: 
                 self.akcja_myszy = 'draw'
@@ -1476,7 +1500,7 @@ class PyPhoto(ctk.CTk):
         elif self.aktywne_narzedzie == 'text': 
             self.wstaw_tekst(x, y)
         elif self.aktywne_narzedzie == 'shape': 
-            shape_type = self.combo_shape.get()
+            shape_type = self.aktywny_ksztalt
             color = self.get_draw_color()
             width = int(self.slider_size.get())
             if shape_type == self.t["shape_rect"] or shape_type == self.t["shape_rounded"]:
@@ -1489,7 +1513,11 @@ class PyPhoto(ctk.CTk):
                 self.temp_draw_id = self.canvas.create_polygon(x,y,x,y,x,y, outline=color, fill="", width=width)
 
     def on_canvas_drag(self, event):
-        if self.aktywna_warstwa == -1 or not self.aktywne_narzedzie: return
+        if not self.aktywne_narzedzie or not self.doc_size: return
+        
+        if self.aktywna_warstwa == -1 and self.aktywne_narzedzie in ['move']: 
+            return
+            
         x, y = event.x, event.y
         
         if self.aktywne_narzedzie == 'move':
@@ -1527,14 +1555,14 @@ class PyPhoto(ctk.CTk):
             self.draw_points.append((x, y))
             self.last_x, self.last_y = x, y
         elif self.aktywne_narzedzie == 'shape' and self.temp_draw_id:
-            shape_type = self.combo_shape.get()
+            shape_type = self.aktywny_ksztalt
             if shape_type == self.t["shape_triangle"]:
                 self.canvas.coords(self.temp_draw_id, self.last_x, y, (self.last_x + x)/2, self.last_y, x, y)
             else:
                 self.canvas.coords(self.temp_draw_id, self.last_x, self.last_y, x, y)
 
     def on_canvas_release(self, event):
-        if self.aktywna_warstwa == -1 or not self.aktywne_narzedzie: return
+        if not self.aktywne_narzedzie or not self.doc_size: return
         if self.aktywne_narzedzie == 'brush': self.zastosuj_rysowanie('brush')
         elif self.aktywne_narzedzie == 'shape': self.zastosuj_rysowanie('shape', event.x, event.y)
 
@@ -1548,22 +1576,29 @@ class PyPhoto(ctk.CTk):
             self.canvas.create_oval(px-r, py-r, px+r, py+r, fill=k, tags="crop_element")
 
     def ustaw_narzedzie(self, narzedzie):
-        if not self.warstwy: return
+        if not self.warstwy and narzedzie not in [None, 'crop']: return
         self.zatwierdz_podglad()
         self.canvas.delete("crop_element"); self.rect_coords = None; self.canvas.config(cursor="")
         
         if self.aktywne_narzedzie == narzedzie:
             self.aktywne_narzedzie = None
+            nazwa = self.t["none"]
         else:
             self.aktywne_narzedzie = narzedzie
-            if narzedzie == 'crop': self.canvas.config(cursor="cross")
-            elif narzedzie == 'brush': self.canvas.config(cursor="pencil")
-            elif narzedzie == 'fill': self.canvas.config(cursor="tcross")
-            elif narzedzie == 'text': self.canvas.config(cursor="xterm")
-            elif narzedzie == 'shape': self.canvas.config(cursor="crosshair")
-            elif narzedzie == 'move': self.canvas.config(cursor="fleur") 
-
-        self.zaktualizuj_styl_narzedzi()
+            if narzedzie == 'crop': self.canvas.config(cursor="cross"); nazwa = self.t["crop_on"]
+            elif narzedzie == 'brush': self.canvas.config(cursor="pencil"); nazwa = self.t["brush"]
+            elif narzedzie == 'fill': self.canvas.config(cursor="tcross"); nazwa = self.t["fill"]
+            elif narzedzie == 'text': self.canvas.config(cursor="xterm"); nazwa = self.t["text"]
+            elif narzedzie == 'shape': self.canvas.config(cursor="crosshair"); nazwa = self.aktywny_ksztalt
+            elif narzedzie == 'move': self.canvas.config(cursor="fleur"); nazwa = self.t["move"]
+            else: nazwa = self.t["none"]
+            
+        self.lbl_aktywne_narz.configure(text=f"{self.t['active_tool']} {nazwa}")
+        
+        if self.aktywne_narzedzie == 'crop':
+            self.btn_crop.configure(text=self.t["crop_off"], border_width=2)
+        else:
+            self.btn_crop.configure(text=self.t["crop_on"], border_width=1)
 
     def przy_zmianie_rozmiaru(self, event):
         self.canvas.coords("help_text", event.width / 2, event.height / 2)
