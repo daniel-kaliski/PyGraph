@@ -6,12 +6,11 @@
 # 
 # Copyright (c) 2026 Daniel Kaliski
 # Ten kod jest objęty licencją GNU GENERAL PUBLIC LICENSE GPL-3.0.
-# Pełny tekst licencji znajduje się w pliku LICENSE lub na stronie:
-# https://opensource.org/license/gpl-3.0
 # ==============================================================================
 
 import sys
 import os
+import math
 
 class DummyStream:
     def write(self, *args, **kwargs): pass
@@ -65,9 +64,9 @@ TEXTS = {
         "contrast": "Kontrast",
         "saturation": "Nasycenie",
         "sharpness": "Ostrość",
-        "scale": "Skala warstwy",
+        "scale": "Powiększ",
         "interactive": "Narzędzia interaktywne:",
-        "move": "Przesuń",
+        "move": "Zaznacz",
         "brush": "Pędzel",
         "fill": "Wypełnij",
         "text": "Tekst",
@@ -76,7 +75,9 @@ TEXTS = {
         "shape_line": "Linia",
         "shape_triangle": "Trójkąt",
         "shape_rounded": "Zaokr. Prostokąt",
-        "color": "Wybierz kolor",
+        "color_outline": "Kolor linii",
+        "color_fill": "Kolor tła",
+        "no_fill": "Brak",
         "size": "Grubość:",
         "select_font": "Wybierz czcionkę:",
         "font_size": "Wielkość:",
@@ -147,9 +148,9 @@ TEXTS = {
         "contrast": "Contrast",
         "saturation": "Saturation",
         "sharpness": "Sharpness",
-        "scale": "Layer Scale",
+        "scale": "Zoom",
         "interactive": "Interactive Tools:",
-        "move": "Move",
+        "move": "Select",
         "brush": "Brush",
         "fill": "Fill",
         "text": "Text",
@@ -158,7 +159,9 @@ TEXTS = {
         "shape_line": "Line",
         "shape_triangle": "Triangle",
         "shape_rounded": "Rounded Rect",
-        "color": "Select Color",
+        "color_outline": "Line Color",
+        "color_fill": "Fill Color",
+        "no_fill": "None",
         "size": "Thickness:",
         "select_font": "Select font:",
         "font_size": "Size:",
@@ -209,6 +212,11 @@ TEXTS = {
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
+class MockEvent:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    
 def blend_layers(base, top, mode):
     if mode == "Normal": return Image.alpha_composite(base, top)
     base_rgb = base.convert("RGB")
@@ -264,8 +272,8 @@ class PyPhoto(ctk.CTk):
                     b = b.point(lambda _: 255)
                     white_img = Image.merge("RGBA", (r, g, b, a))
                     return ctk.CTkImage(light_image=white_img, dark_image=white_img, size=size)
-                except Exception as e:
-                    print(f"Nie można załadować {name}: {e}")
+                except Exception:
+                    pass
             return None
 
         self.icons["check"] = load_icon("check.png")
@@ -310,25 +318,20 @@ class PyPhoto(ctk.CTk):
         self.tk_icons["open"] = load_tk_icon(["folder_open.png", "folder.png", "open.png"])
         self.tk_icons["save"] = load_tk_icon(["save.png", "download.png"])
         self.tk_icons["close"] = load_tk_icon(["close.png", "exit.png", "cancel.png"])
-        
         self.tk_icons["undo"] = load_tk_icon(["undo.png", "history.png"])
-        
         self.tk_icons["rotate"] = load_tk_icon(["rotate_right.png", "rotate.png"])
         self.tk_icons["flip_h"] = load_tk_icon(["flip_h.png", "swap_horiz.png"])
         self.tk_icons["flip_v"] = load_tk_icon(["flip_v.png", "swap_vert.png"])
         self.tk_icons["remove_bg"] = load_tk_icon(["auto_fix_high.png", "magic.png", "remove_bg.png"])
-        
-        self.tk_icons["move"] = load_tk_icon(["pan_tool.png", "open_with.png", "move.png"])
+        self.tk_icons["move"] = load_tk_icon(["near_me.png", "pan_tool.png", "arrows.png", "open_with.png"])
         self.tk_icons["brush"] = load_tk_icon(["brush.png", "create.png"])
         self.tk_icons["fill"] = load_tk_icon(["format_color_fill.png", "fill.png", "palette.png"])
         self.tk_icons["text"] = load_tk_icon(["text_fields.png", "title.png", "text.png"])
-        
         self.tk_icons["shape_rect"] = load_tk_icon(["crop_square.png", "rectangle.png"])
         self.tk_icons["shape_ellipse"] = load_tk_icon(["radio_button_unchecked.png", "ellipse.png", "circle.png"])
         self.tk_icons["shape_line"] = load_tk_icon(["remove.png", "line.png"])
         self.tk_icons["shape_triangle"] = load_tk_icon(["change_history.png", "triangle.png"])
         self.tk_icons["shape_rounded"] = load_tk_icon(["crop_din.png", "rounded_rect.png"])
-        
         self.tk_icons["bw"] = load_tk_icon(["filter_b_and_w.png", "bw.png"])
         self.tk_icons["blur"] = load_tk_icon(["blur_on.png", "blur.png"])
         self.tk_icons["sharpen"] = load_tk_icon(["details.png", "sharpen.png"])
@@ -339,7 +342,6 @@ class PyPhoto(ctk.CTk):
         self.tk_icons["smooth"] = load_tk_icon(["blur_linear.png", "smooth.png"])
         self.tk_icons["posterize"] = load_tk_icon(["photo_filter.png", "posterize.png"])
         self.tk_icons["solarize"] = load_tk_icon(["wb_sunny.png", "solarize.png"])
-        
         self.tk_icons["lang_pl"] = load_tk_icon(["translate.png", "language.png"])
         self.tk_icons["lang_en"] = load_tk_icon(["public.png", "language.png"])
 
@@ -351,7 +353,6 @@ class PyPhoto(ctk.CTk):
         
         self.zaladuj_ikony()
 
-        self.title(self.t["title"])
         self.minsize(1100, 650)
         
         try:
@@ -383,12 +384,16 @@ class PyPhoto(ctk.CTk):
         self.akcja_myszy = None
         self.last_x = 0
         self.last_y = 0
-        self.current_color = "#ffffff" 
+        
+        self.color_outline = "#ffffff" 
+        self.color_fill = None
+        
         self.draw_points = []
         self.temp_draw_id = None
         self.warstwa_podgladowa = None
         self.blokuj_podglad = False
         self.text_resize_started = False
+        self.live_edit_started = False
         self.aktywny_ksztalt = self.t["shape_rect"]
         
         self.klucze_filtrow = ["bw", "blur", "sharpen", "invert", "emboss", "edges", "contour", "smooth", "posterize", "solarize"]
@@ -416,16 +421,33 @@ class PyPhoto(ctk.CTk):
         ramka_opcji = ctk.CTkFrame(self.panel_narzedzi, fg_color="transparent")
         ramka_opcji.pack(pady=5, padx=5, fill="x")
         
-        self.btn_color = ctk.CTkButton(ramka_opcji, text=self.t["color"], image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor, fg_color="transparent", border_width=1, border_color="white", text_color=self.current_color, hover_color="#333")
-        self.btn_color.pack(fill="x", pady=5)
+        ramka_kolorow = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
+        ramka_kolorow.pack(fill="x", pady=5)
+        
+        self.btn_color_outline = ctk.CTkButton(ramka_kolorow, text=self.t["color_outline"], image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor_linii, fg_color="transparent", border_width=1, border_color=self.color_outline, text_color=self.color_outline, hover_color="#333")
+        self.btn_color_outline.pack(fill="x", pady=(0, 5))
+        
+        ramka_fill = ctk.CTkFrame(ramka_kolorow, fg_color="transparent")
+        ramka_fill.pack(fill="x")
+        
+        fill_text = self.t["color_fill"] if self.color_fill else self.t["color_fill"] + f" ({self.t['no_fill']})"
+        fill_border = self.color_fill if self.color_fill else "gray50"
+        fill_text_color = self.color_fill if self.color_fill else "gray50"
+        
+        self.btn_color_fill = ctk.CTkButton(ramka_fill, text=fill_text, image=self.icons.get("color"), height=32, corner_radius=6, command=self.wybierz_kolor_tla, fg_color="transparent", border_width=1, border_color=fill_border, text_color=fill_text_color, hover_color="#333")
+        self.btn_color_fill.pack(side="left", expand=True, fill="x", padx=(0, 2))
+        
+        self.btn_no_fill = ctk.CTkButton(ramka_fill, text="X", width=32, height=32, corner_radius=6, command=self.usun_kolor_tla, fg_color="transparent", border_width=1, border_color="#aa0000", text_color="#aa0000", hover_color="#550000")
+        self.btn_no_fill.pack(side="right")
         
         ramka_grubosc = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_grubosc.pack(fill="x", pady=5)
         self.lbl_size = ctk.CTkLabel(ramka_grubosc, text=self.t["size"], width=80, anchor="w", font=ctk.CTkFont(size=13))
         self.lbl_size.pack(side="left", padx=(0, 2))
-        self.slider_size = ctk.CTkSlider(ramka_grubosc, from_=1, to=100, button_color="#888", button_hover_color="#bbb")
+        self.slider_size = ctk.CTkSlider(ramka_grubosc, from_=1, to=100, button_color="#888", button_hover_color="#bbb", command=self.aktualizuj_grubosc_live)
         self.slider_size.set(5)
         self.slider_size.pack(side="right", expand=True, fill="x")
+        self.slider_size.bind("<ButtonRelease-1>", lambda e: self.zapisz_koniec_zmiany_live())
         
         ramka_czcionka_rodzina = ctk.CTkFrame(ramka_opcji, fg_color="transparent")
         ramka_czcionka_rodzina.pack(fill="x", pady=5)
@@ -502,6 +524,8 @@ class PyPhoto(ctk.CTk):
         self.canvas.bind("<ButtonPress-1>", self.on_canvas_press)
         self.canvas.bind("<B1-Motion>", self.on_canvas_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_canvas_release)
+        self.canvas.bind("<Motion>", self.pokaz_celownik)
+        self.canvas.bind("<Leave>", lambda e: self.canvas.delete("brush_cursor"))
 
         self.panel_prawy = ctk.CTkFrame(self, corner_radius=0, width=szerokosc_paneli)
         self.panel_prawy.grid(row=0, column=2, sticky="nsew")
@@ -509,7 +533,6 @@ class PyPhoto(ctk.CTk):
         self.panel_prawy.pack_propagate(False)
 
         scroll_prawy_w = 260
-
         self.lbl_layers_title = ctk.CTkLabel(self.panel_prawy, text=self.t["layers"], font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_layers_title.pack(pady=(15, 5))
 
@@ -552,15 +575,47 @@ class PyPhoto(ctk.CTk):
         self.panel_listy_warstw.pack(fill="both", expand=True, padx=10, pady=5)
         self.uaktywnij_autoukrywanie_paska(self.panel_listy_warstw)
 
-        self.bind("<Control-z>", lambda e: self.cofnij())
-        self.bind("<Command-z>", lambda e: self.cofnij()) 
-        self.bind("<Control-s>", lambda e: self.zapisz_obraz())
-        self.bind("<Command-s>", lambda e: self.zapisz_obraz()) 
-        self.bind("<Control-o>", lambda e: self.otworz_obraz())
-        self.bind("<Command-o>", lambda e: self.otworz_obraz()) 
-        self.bind("<Key>", self.obsloz_skroty_narzedzi)
-
+        self.przypisz_skroty()
         self.utworz_menu()
+        self.bind("<Configure>", self.wycentruj_tytul_okna)
+
+    def przypisz_skroty(self):
+        def sprawdz_focus_i_wykonaj(akcja, arg=None):
+            focus_widget = self.focus_get()
+            if isinstance(focus_widget, (tk.Entry, ctk.CTkEntry)): return
+            
+            if akcja == 'narzedzie':
+                if not self.warstwy and arg not in [None, 'crop']: return
+                self.ustaw_narzedzie(arg)
+            elif akcja == 'cofnij': self.cofnij()
+            elif akcja == 'zapisz': self.zapisz_obraz()
+            elif akcja == 'otworz': self.otworz_obraz()
+
+        self.bind_all("<Key-v>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'move'))
+        self.bind_all("<Key-V>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'move'))
+        self.bind_all("<Key-b>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'brush'))
+        self.bind_all("<Key-B>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'brush'))
+        self.bind_all("<Key-t>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'text'))
+        self.bind_all("<Key-T>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'text'))
+        self.bind_all("<Key-c>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'crop'))
+        self.bind_all("<Key-C>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'crop'))
+        self.bind_all("<Key-f>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'fill'))
+        self.bind_all("<Key-F>", lambda e: sprawdz_focus_i_wykonaj('narzedzie', 'fill'))
+        
+        self.bind_all("<Control-z>", lambda e: sprawdz_focus_i_wykonaj('cofnij'))
+        self.bind_all("<Control-Z>", lambda e: sprawdz_focus_i_wykonaj('cofnij'))
+        self.bind_all("<Command-z>", lambda e: sprawdz_focus_i_wykonaj('cofnij'))
+        self.bind_all("<Command-Z>", lambda e: sprawdz_focus_i_wykonaj('cofnij'))
+        
+        self.bind_all("<Control-s>", lambda e: sprawdz_focus_i_wykonaj('zapisz'))
+        self.bind_all("<Control-S>", lambda e: sprawdz_focus_i_wykonaj('zapisz'))
+        self.bind_all("<Command-s>", lambda e: sprawdz_focus_i_wykonaj('zapisz'))
+        self.bind_all("<Command-S>", lambda e: sprawdz_focus_i_wykonaj('zapisz'))
+        
+        self.bind_all("<Control-o>", lambda e: sprawdz_focus_i_wykonaj('otworz'))
+        self.bind_all("<Control-O>", lambda e: sprawdz_focus_i_wykonaj('otworz'))
+        self.bind_all("<Command-o>", lambda e: sprawdz_focus_i_wykonaj('otworz'))
+        self.bind_all("<Command-O>", lambda e: sprawdz_focus_i_wykonaj('otworz'))
 
     def uaktywnij_autoukrywanie_paska(self, ramka_skrolowana):
         def sprawdz_pasek(event=None):
@@ -595,7 +650,6 @@ class PyPhoto(ctk.CTk):
             czcionka_menu = ("Arial", 14)
             
         self.option_add('*tearOff', False)
-        
         menubar = tk.Menu(self, font=czcionka_menu)
         
         def add_icon_cmd(menu_parent, label_text, cmd, icon_key=None, state="normal"):
@@ -675,12 +729,40 @@ class PyPhoto(ctk.CTk):
         self.geometry(f"{w}x{h}+0+0")
 
     def get_draw_color(self):
-        kolor_hex = self.current_color
+        kolor_hex = self.color_outline
         if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('edycja_maski'):
             r, g, b = tuple(int(kolor_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
             gray = int(r * 0.299 + g * 0.587 + b * 0.114)
             return f"#{gray:02x}{gray:02x}{gray:02x}"
         return kolor_hex
+
+    def dystans(self, p1, p2):
+        return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
+    def pokaz_celownik(self, event):
+        self.canvas.delete("brush_cursor")
+        if not self.aktywne_narzedzie in ['brush', 'shape']: return
+        r = int(self.slider_size.get() / 2 * (self.display_width / self.doc_size[0] if self.doc_size else 1))
+        r = max(1, r)
+        self.canvas.create_oval(event.x - r, event.y - r, event.x + r, event.y + r, outline="white", tags="brush_cursor")
+        self.canvas.create_oval(event.x - r - 1, event.y - r - 1, event.x + r + 1, event.y + r + 1, outline="black", tags="brush_cursor")
+
+    def aktualizuj_grubosc_live(self, wartosc):
+        ex = self.winfo_pointerx() - self.canvas.winfo_rootx()
+        ey = self.winfo_pointery() - self.canvas.winfo_rooty()
+        self.pokaz_celownik(MockEvent(ex, ey))
+        if self.aktywna_warstwa != -1:
+            w = self.warstwy[self.aktywna_warstwa]
+            if w.get('is_object') and w.get('obj_typ') in ['shape', 'brush']:
+                if not getattr(self, 'live_edit_started', False):
+                    self.zapisz_stan_do_historii()
+                    self.live_edit_started = True
+                w['obj_size'] = int(wartosc)
+                self.narysuj_obiekt(w)
+                self.komponuj_i_wyswietl()
+
+    def zapisz_koniec_zmiany_live(self):
+        self.live_edit_started = False
 
     def stworz_pole_px(self, rodzic, tekst, rzad, kolumna):
         ramka = ctk.CTkFrame(rodzic, fg_color="transparent")
@@ -697,7 +779,11 @@ class PyPhoto(ctk.CTk):
     def _update_text(self, widget_name, text_key):
         try:
             widget = getattr(self, widget_name)
-            widget.configure(text=self.t[text_key])
+            if widget_name == "btn_color_fill":
+                txt = self.t[text_key] if self.color_fill else f"{self.t[text_key]} ({self.t['no_fill']})"
+                widget.configure(text=txt)
+            else:
+                widget.configure(text=self.t[text_key])
         except Exception:
             pass 
 
@@ -705,9 +791,7 @@ class PyPhoto(ctk.CTk):
         self.ustaw_jezyk("en" if self.lang == "pl" else "pl")
 
     def ustaw_jezyk(self, kod):
-        if self.lang == kod:
-            return
-            
+        if self.lang == kod: return
         stare_t = self.t
         self.lang = kod
         self.t = TEXTS[self.lang]
@@ -718,39 +802,23 @@ class PyPhoto(ctk.CTk):
             elif w['nazwa'].startswith(stare_t['new_layer'] + " "):
                 w['nazwa'] = w['nazwa'].replace(stare_t['new_layer'], self.t['new_layer'], 1)
         
-        self.title(self.t["title"])
-        
-        self._update_text("lbl_aktywne_narz", "active_tool")
-        self._update_text("btn_color", "color")
-        self._update_text("lbl_size", "size")
-        self._update_text("lbl_select_font", "select_font")
-        self._update_text("lbl_font_size", "font_size")
-        self._update_text("lbl_adjust", "adjust")
-        self._update_text("lbl_brightness", "brightness")
-        self._update_text("lbl_contrast", "contrast")
-        self._update_text("lbl_saturation", "saturation")
-        self._update_text("lbl_sharpness", "sharpness")
-        self._update_text("lbl_scale", "scale")
-        self._update_text("lbl_kadrowanie", "crop")
-        self._update_text("lbl_w", "width")
-        self._update_text("lbl_h", "height")
-        self._update_text("btn_dokladne_crop", "crop_apply")
-        self._update_text("lbl_layers_title", "layers")
-        self._update_text("btn_add_layer", "layer_add")
-        self._update_text("btn_insert_layer", "layer_insert")
-        self._update_text("btn_del_layer", "layer_del")
-        self._update_text("btn_add_mask", "mask_add")
-        self._update_text("btn_del_mask", "mask_del")
-        self._update_text("lbl_blend", "blend")
-        self._update_text("lbl_opacity", "opacity")
-        self._update_text("text_label", "help")
+        elementy = [
+            ("lbl_aktywne_narz", "active_tool"), ("btn_color_outline", "color_outline"),
+            ("btn_color_fill", "color_fill"), ("lbl_size", "size"), ("lbl_select_font", "select_font"),
+            ("lbl_font_size", "font_size"), ("lbl_adjust", "adjust"), ("lbl_brightness", "brightness"),
+            ("lbl_contrast", "contrast"), ("lbl_saturation", "saturation"), ("lbl_sharpness", "sharpness"),
+            ("lbl_scale", "scale"), ("lbl_kadrowanie", "crop"), ("lbl_w", "width"), ("lbl_h", "height"),
+            ("btn_dokladne_crop", "crop_apply"), ("lbl_layers_title", "layers"), ("btn_add_layer", "layer_add"),
+            ("btn_insert_layer", "layer_insert"), ("btn_del_layer", "layer_del"), ("btn_add_mask", "mask_add"),
+            ("btn_del_mask", "mask_del"), ("lbl_blend", "blend"), ("lbl_opacity", "opacity"), ("text_label", "help")
+        ]
+        for w_name, t_key in elementy:
+            self._update_text(w_name, t_key)
 
-        if self.aktywny_ksztalt in [stare_t[k] for k in ["shape_rect", "shape_ellipse", "shape_line", "shape_triangle", "shape_rounded"]]:
-            shape_keys = ["shape_rect", "shape_ellipse", "shape_line", "shape_triangle", "shape_rounded"]
-            for key in shape_keys:
-                if self.aktywny_ksztalt == stare_t[key]:
-                    self.aktywny_ksztalt = self.t[key]
-                    break
+        for key in ["shape_rect", "shape_ellipse", "shape_line", "shape_triangle", "shape_rounded"]:
+            if self.aktywny_ksztalt == stare_t[key]:
+                self.aktywny_ksztalt = self.t[key]
+                break
 
         self.odswiez_panel_warstw()
         self.utworz_menu()
@@ -763,27 +831,185 @@ class PyPhoto(ctk.CTk):
             self.canvas.delete("all")
             self.canvas.create_window(self.canvas.winfo_width()/2, self.canvas.winfo_height()/2, window=self.text_label, anchor="center", tags="help_text")
 
-    def obsloz_skroty_narzedzi(self, event):
-        if not self.warstwy: return
-        if isinstance(self.focus_get(), (tk.Entry, ctk.CTkEntry)): return
-        if not event.char: return
-        char = event.char.lower()
-        if char == 'v': self.ustaw_narzedzie('move')
-        elif char == 'b': self.ustaw_narzedzie('brush')
-        elif char == 't': self.ustaw_narzedzie('text')
-        elif char == 'c': self.ustaw_narzedzie('crop')
-        elif char == 'f': self.ustaw_narzedzie('fill')
+    def get_rgba(self, hex_color):
+        if not hex_color: return None
+        return tuple(int(hex_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
 
-    def wybierz_kolor(self):
-        kolor = colorchooser.askcolor(color=self.current_color)[1]
-        if kolor: 
-            self.current_color = kolor
-            self.btn_color.configure(text_color=kolor)
-            if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
+    def zmien_czcionke_tekstu(self, wartosc):
+        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
+            self.zapisz_stan_do_historii()
+            self.warstwy[self.aktywna_warstwa]['text_font'] = wartosc
+            self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+            self.komponuj_i_wyswietl()
+
+    def zmien_rozmiar_tekstu(self, wartosc):
+        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
+            if not getattr(self, 'text_resize_started', False):
                 self.zapisz_stan_do_historii()
-                fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
-                self.warstwy[self.aktywna_warstwa]['text_color'] = fill_color
-                self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+                self.text_resize_started = True
+            self.warstwy[self.aktywna_warstwa]['text_size'] = int(wartosc)
+            self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+            self.komponuj_i_wyswietl()
+
+    def zatwierdz_rozmiar_tekstu(self):
+        self.text_resize_started = False
+
+    def renderuj_warstwe_tekstu(self, idx):
+        w = self.warstwy[idx]
+        if not w.get('is_text'): return
+        
+        pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(pusta)
+        font_name = w.get('text_font', 'Arial')
+        font = None
+        try_paths = [
+            font_name, font_name + ".ttf", font_name + ".ttc", 
+            font_name.lower() + ".ttf", font_name.replace(" ", "") + ".ttf", font_name.replace(" ", "") + ".ttc"
+        ]
+        base_dirs = [""]
+        if sys.platform == "darwin": base_dirs += ["/Library/Fonts/", "/System/Library/Fonts/", "/System/Library/Fonts/Supplemental/", os.path.expanduser("~/Library/Fonts/")]
+        elif sys.platform == "win32": base_dirs += ["C:\\Windows\\Fonts\\"]
+        else: base_dirs += ["/usr/share/fonts/truetype/", "/usr/share/fonts/"]
+            
+        for p in try_paths:
+            for bd in base_dirs:
+                try:
+                    font = ImageFont.truetype(os.path.join(bd, p), size=w['text_size'])
+                    break
+                except: pass
+            if font: break
+                
+        if not font:
+            try: font = ImageFont.truetype("arial.ttf", size=w['text_size'])
+            except: 
+                try: font = ImageFont.truetype("Arial.ttf", size=w['text_size'])
+                except: font = ImageFont.load_default()
+        
+        draw.text((w['text_x'], w['text_y']), w['text_content'], fill=w['text_color'], font=font)
+        w['obraz'] = pusta
+
+    def wstaw_tekst(self, x, y):
+        tekst = simpledialog.askstring("Tekst", "Wpisz tekst:")
+        if not tekst: return self.ustaw_narzedzie('text')
+        
+        self.zatwierdz_podglad()
+        self.zapisz_stan_do_historii()
+        
+        rx, ry = self.canvas_to_image_coords(x, y)
+        nazwa = f"T: {tekst[:8]}"
+        idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
+        fill_color = self.get_rgba(self.color_outline)
+        rozmiar_czcionki = int(self.slider_font_size.get())
+        wybrana_czcionka = self.combo_font.get()
+        
+        self.warstwy.insert(idx, {
+            'nazwa': nazwa, 
+            'obraz': Image.new("RGBA", self.doc_size, (0, 0, 0, 0)),
+            'widoczna': True, 
+            'krycie': 1.0, 
+            'tryb': 'Normal', 
+            'maska': None, 
+            'edycja_maski': False, 
+            'offset_x': 0, 
+            'offset_y': 0,
+            'is_text': True,
+            'text_content': tekst,
+            'text_x': rx,
+            'text_y': ry,
+            'text_color': fill_color,
+            'text_size': rozmiar_czcionki,
+            'text_font': wybrana_czcionka
+        })
+        
+        self.renderuj_warstwe_tekstu(idx)
+        self.ustaw_aktywna_warstwe(idx)
+        self.ustaw_narzedzie('move')
+        self.komponuj_i_wyswietl()
+
+    def narysuj_obiekt(self, w):
+        pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(pusta)
+        
+        if w['obj_typ'] == 'shape':
+            shape_type = w['shape_type']
+            rozmiar = w['obj_size']
+            outline_color = w['obj_color']
+            fill_color = w.get('obj_fill_color', None)
+            pts = w['obj_pts']
+            x1, y1, x2, y2 = pts
+            
+            if shape_type in [self.t["shape_line"], TEXTS["pl"]["shape_line"], TEXTS["en"]["shape_line"]]:
+                draw.line([x1, y1, x2, y2], fill=outline_color, width=rozmiar, joint="curve")
+            else:
+                bbox = [min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)]
+                if shape_type in [self.t["shape_rect"], TEXTS["pl"]["shape_rect"], TEXTS["en"]["shape_rect"]]:
+                    draw.rectangle(bbox, outline=outline_color, fill=fill_color, width=rozmiar)
+                elif shape_type in [self.t["shape_ellipse"], TEXTS["pl"]["shape_ellipse"], TEXTS["en"]["shape_ellipse"]]:
+                    draw.ellipse(bbox, outline=outline_color, fill=fill_color, width=rozmiar)
+                elif shape_type in [self.t["shape_triangle"], TEXTS["pl"]["shape_triangle"], TEXTS["en"]["shape_triangle"]]:
+                    bx1, by1, bx2, by2 = bbox
+                    w_t = bx2 - bx1
+                    h_t = by2 - by1
+                    t_pts = [(bx1, by1+h_t), (bx1+w_t/2, by1), (bx2, by1+h_t)]
+                    draw.polygon(t_pts, outline=outline_color, fill=fill_color, width=rozmiar)
+                elif shape_type in [self.t["shape_rounded"], TEXTS["pl"]["shape_rounded"], TEXTS["en"]["shape_rounded"]]:
+                    bx1, by1, bx2, by2 = bbox
+                    radius = max(1, min(abs(bx2-bx1), abs(by2-by1)) // 5)
+                    draw.rounded_rectangle(bbox, radius=radius, outline=outline_color, fill=fill_color, width=rozmiar)
+                
+        elif w['obj_typ'] == 'brush':
+            rozmiar = w['obj_size']
+            outline_color = w['obj_color']
+            for stroke_pts in w['obj_pts']:
+                if len(stroke_pts) == 1:
+                    px, py = stroke_pts[0]
+                    draw.ellipse([px - rozmiar//2, py - rozmiar//2, px + rozmiar//2, py + rozmiar//2], fill=outline_color)
+                elif len(stroke_pts) > 1:
+                    draw.line(stroke_pts, fill=outline_color, width=rozmiar, joint="curve")
+                
+        w['obraz'] = pusta
+
+    def wybierz_kolor_linii(self):
+        kolor = colorchooser.askcolor(color=self.color_outline)[1]
+        if kolor: 
+            self.color_outline = kolor
+            self.btn_color_outline.configure(text_color=kolor, border_color=kolor)
+            if self.aktywna_warstwa != -1:
+                w = self.warstwy[self.aktywna_warstwa]
+                if w.get('is_text'):
+                    self.zapisz_stan_do_historii()
+                    w['text_color'] = self.get_rgba(kolor)
+                    self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+                    self.komponuj_i_wyswietl()
+                elif w.get('is_object'):
+                    self.zapisz_stan_do_historii()
+                    w['obj_color'] = self.get_rgba(kolor)
+                    self.narysuj_obiekt(w)
+                    self.komponuj_i_wyswietl()
+
+    def wybierz_kolor_tla(self):
+        init_color = self.color_fill if self.color_fill else "#ffffff"
+        kolor = colorchooser.askcolor(color=init_color)[1]
+        if kolor:
+            self.color_fill = kolor
+            self.btn_color_fill.configure(text=self.t["color_fill"], text_color=kolor, border_color=kolor)
+            if self.aktywna_warstwa != -1:
+                w = self.warstwy[self.aktywna_warstwa]
+                if w.get('is_object') and w.get('obj_typ') == 'shape':
+                    self.zapisz_stan_do_historii()
+                    w['obj_fill_color'] = self.get_rgba(kolor)
+                    self.narysuj_obiekt(w)
+                    self.komponuj_i_wyswietl()
+
+    def usun_kolor_tla(self):
+        self.color_fill = None
+        self.btn_color_fill.configure(text=self.t["color_fill"] + f" ({self.t['no_fill']})", text_color="gray50", border_color="gray50")
+        if self.aktywna_warstwa != -1:
+            w = self.warstwy[self.aktywna_warstwa]
+            if w.get('is_object') and w.get('obj_typ') == 'shape':
+                self.zapisz_stan_do_historii()
+                w['obj_fill_color'] = None
+                self.narysuj_obiekt(w)
                 self.komponuj_i_wyswietl()
 
     def aktualizuj_wymiary_w_polach(self, x=0, y=0, w=0, h=0):
@@ -798,17 +1024,14 @@ class PyPhoto(ctk.CTk):
                 img = Image.open(sciezka)
                 if img.mode != "RGBA":
                     img = img.convert("RGBA")
-                
                 self.doc_size = img.size
                 self.warstwy = []
                 self.historia = []
                 if hasattr(self, 'menu_edycja'):
                     self.menu_edycja.entryconfig(0, state="disabled")
-                
                 nazwa = os.path.basename(sciezka)[:15]
                 self.dodaj_warstwe(img, nazwa, 0, 0)
                 self.ustaw_aktywna_warstwe(0)
-                
             except Exception as e:
                 messagebox.showerror(self.t["msg_err_title"], f"{self.t['err_open']} {e}")
 
@@ -816,21 +1039,17 @@ class PyPhoto(ctk.CTk):
         if not self.doc_size:
             self.otworz_obraz()
             return
-            
         sciezka = filedialog.askopenfilename(filetypes=[("Images", "*.png *.jpg *.jpeg *.bmp *.webp")])
         if sciezka:
             try:
                 img = Image.open(sciezka)
                 if img.mode != "RGBA":
                     img = img.convert("RGBA")
-                
                 self.zatwierdz_podglad()
                 self.zapisz_stan_do_historii()
-                
                 x = (self.doc_size[0] - img.width) // 2
                 y = (self.doc_size[1] - img.height) // 2
                 nazwa = os.path.basename(sciezka)[:12]
-                
                 idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
                 self.warstwy.insert(idx, {'nazwa': nazwa, 'obraz': img, 'widoczna': True, 'krycie': 1.0, 'tryb': 'Normal', 'maska': None, 'edycja_maski': False, 'offset_x': x, 'offset_y': y})
                 self.ustaw_aktywna_warstwe(idx)
@@ -848,7 +1067,6 @@ class PyPhoto(ctk.CTk):
         self.zapisz_stan_do_historii()
         pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
         nazwa = f"{self.t['new_layer']} {len(self.warstwy)}"
-        
         idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
         self.warstwy.insert(idx, {'nazwa': nazwa, 'obraz': pusta, 'widoczna': True, 'krycie': 1.0, 'tryb': 'Normal', 'maska': None, 'edycja_maski': False, 'offset_x': 0, 'offset_y': 0})
         self.ustaw_aktywna_warstwe(idx)
@@ -902,13 +1120,37 @@ class PyPhoto(ctk.CTk):
         self.zatwierdz_podglad()
         self.aktywna_warstwa = index
         if 0 <= index < len(self.warstwy):
-            self.slider_opacity.set(self.warstwy[index]['krycie'])
-            self.combo_blend.set(self.warstwy[index].get('tryb', 'Normal'))
+            w = self.warstwy[index]
+            self.slider_opacity.set(w['krycie'])
+            self.combo_blend.set(w.get('tryb', 'Normal'))
             
-            if self.warstwy[index].get('is_text'):
-                self.slider_font_size.set(self.warstwy[index]['text_size'])
-                if 'text_font' in self.warstwy[index]:
-                    self.combo_font.set(self.warstwy[index]['text_font'])
+            if w.get('is_object') and w.get('obj_size'):
+                self.slider_size.set(w['obj_size'])
+                if w.get('obj_color'):
+                    r, g, b, a = w['obj_color']
+                    hex_out = f"#{r:02x}{g:02x}{b:02x}"
+                    self.color_outline = hex_out
+                    self.btn_color_outline.configure(text_color=hex_out, border_color=hex_out)
+                
+                if w.get('obj_typ') == 'shape':
+                    if w.get('obj_fill_color'):
+                        r, g, b, a = w['obj_fill_color']
+                        hex_fill = f"#{r:02x}{g:02x}{b:02x}"
+                        self.color_fill = hex_fill
+                        self.btn_color_fill.configure(text=self.t["color_fill"], text_color=hex_fill, border_color=hex_fill)
+                    else:
+                        self.color_fill = None
+                        self.btn_color_fill.configure(text=self.t["color_fill"] + f" ({self.t['no_fill']})", text_color="gray50", border_color="gray50")
+
+            if w.get('is_text'):
+                self.slider_font_size.set(w['text_size'])
+                if 'text_font' in w:
+                    self.combo_font.set(w['text_font'])
+                if w.get('text_color'):
+                    r, g, b, a = w['text_color']
+                    hex_out = f"#{r:02x}{g:02x}{b:02x}"
+                    self.color_outline = hex_out
+                    self.btn_color_outline.configure(text_color=hex_out, border_color=hex_out)
                 
         self.odswiez_panel_warstw()
         self.resetuj_suwaki()
@@ -969,6 +1211,64 @@ class PyPhoto(ctk.CTk):
             btn_rename = ctk.CTkButton(ramka, text="", image=self.icons.get("edit"), width=25, fg_color="transparent", border_width=1, border_color="white", hover_color=kolor_hover, command=lambda idx=i: self.zmien_nazwe_warstwy(idx))
             btn_rename.pack(side="right", padx=2, pady=5)
 
+    def rysuj_ramke_zaznaczenia(self):
+        self.canvas.delete("sel_element")
+        if self.aktywne_narzedzie != 'move' or self.aktywna_warstwa == -1: return
+        w = self.warstwy[self.aktywna_warstwa]
+        if not w['widoczna']: return
+        
+        ox, oy = w.get('offset_x', 0), w.get('offset_y', 0)
+        
+        if w.get('is_object') and w['obj_typ'] == 'shape':
+            x1, y1, x2, y2 = w['obj_pts']
+            min_x, max_x = min(x1, x2), max(x1, x2)
+            min_y, max_y = min(y1, y2), max(y1, y2)
+            r = w['obj_size'] / 2
+            x1 = min_x + ox - r
+            y1 = min_y + oy - r
+            x2 = max_x + ox + r
+            y2 = max_y + oy + r
+        elif w.get('is_object') and w['obj_typ'] == 'brush':
+            pts = w['obj_pts']
+            if not pts: return
+            r = w['obj_size'] / 2
+            all_pts = [p for stroke in pts for p in stroke]
+            if not all_pts: return
+            x1 = min(p[0] for p in all_pts) + ox - r
+            y1 = min(p[1] for p in all_pts) + oy - r
+            x2 = max(p[0] for p in all_pts) + ox + r
+            y2 = max(p[1] for p in all_pts) + oy + r
+        elif w.get('is_text'):
+            x1, y1 = w['text_x'] + ox, w['text_y'] + oy
+            approx_w = len(w['text_content']) * (w['text_size'] * 0.6)
+            approx_h = w['text_size'] * 1.2
+            x2, y2 = x1 + approx_w, y1 + approx_h
+        else:
+            bbox = w['obraz'].getbbox()
+            if bbox:
+                bx1, by1, bx2, by2 = bbox
+                x1, y1 = bx1 + ox, by1 + oy
+                x2, y2 = bx2 + ox, by2 + oy
+            else:
+                x1, y1 = ox, oy
+                x2, y2 = ox + w['obraz'].width, oy + w['obraz'].height
+            
+        cx1, cy1 = self.image_to_canvas_coords(min(x1, x2), min(y1, y2))
+        cx2, cy2 = self.image_to_canvas_coords(max(x1, x2), max(y1, y2))
+        
+        self.canvas.create_rectangle(cx1, cy1, cx2, cy2, outline='#00aaff', width=2, dash=(4,4), tags="sel_element")
+        
+        if (w.get('is_object') and w['obj_typ'] == 'shape') or w.get('is_text'):
+            r = 5
+            k = '#00aaff'
+            handles = [
+                (cx1, cy1), (cx2, cy1), (cx1, cy2), (cx2, cy2),
+                ((cx1+cx2)/2, cy1), ((cx1+cx2)/2, cy2),
+                (cx1, (cy1+cy2)/2), (cx2, (cy1+cy2)/2)
+            ]
+            for px, py in handles:
+                self.canvas.create_oval(px-r, py-r, px+r, py+r, fill='white', outline=k, width=2, tags="sel_element")
+
     def komponuj_i_wyswietl(self):
         if not self.warstwy or not self.doc_size:
             self.canvas.delete("all")
@@ -1026,7 +1326,16 @@ class PyPhoto(ctk.CTk):
         self.canvas_img_y_offset = (okno_wys - self.display_height) // 2
         self.canvas.create_image(self.canvas_img_x_offset, self.canvas_img_y_offset, image=self.tk_obraz, anchor="nw")
         
+        if self.aktywne_narzedzie == 'crop':
+            self.rysuj_ramke_na_plotnie()
+        elif self.aktywne_narzedzie == 'move':
+            self.rysuj_ramke_zaznaczenia()
+            
         self.aktualizuj_wymiary_w_polach(w=self.doc_size[0], h=self.doc_size[1])
+
+    def rasteryzuj_warstwe(self, w):
+        if w.get('is_text'): w.pop('is_text', None)
+        if w.get('is_object'): w.pop('is_object', None)
 
     def zatwierdz_podglad(self):
         if self.warstwa_podgladowa is not None and self.aktywna_warstwa != -1:
@@ -1035,8 +1344,7 @@ class PyPhoto(ctk.CTk):
             w['obraz'] = self.warstwa_podgladowa
             self.warstwa_podgladowa = None
             
-            if w.get('is_text') and not w.get('edycja_maski'):
-                w.pop('is_text', None)
+            self.rasteryzuj_warstwe(w)
             
             self.blokuj_podglad = True
             if hasattr(self, 'slider_brightness'): self.slider_brightness.set(1.0)
@@ -1070,6 +1378,19 @@ class PyPhoto(ctk.CTk):
                 kopia['text_color'] = w.get('text_color')
                 kopia['text_size'] = w.get('text_size')
                 kopia['text_font'] = w.get('text_font')
+            if w.get('is_object'):
+                kopia['is_object'] = True
+                kopia['obj_typ'] = w.get('obj_typ')
+                
+                if w.get('obj_typ') == 'brush':
+                    kopia['obj_pts'] = [list(s) for s in w.get('obj_pts', [])]
+                else:
+                    kopia['obj_pts'] = list(w.get('obj_pts'))
+                    
+                kopia['obj_color'] = w.get('obj_color')
+                kopia['obj_fill_color'] = w.get('obj_fill_color')
+                kopia['obj_size'] = w.get('obj_size')
+                kopia['shape_type'] = w.get('shape_type')
             kopia_warstw.append(kopia)
             
         self.historia.append((self.doc_size, self.aktywna_warstwa, kopia_warstw))
@@ -1140,16 +1461,12 @@ class PyPhoto(ctk.CTk):
     def nałoż_filtr(self, filter_type):
         if self.aktywna_warstwa == -1: return
         w = self.warstwy[self.aktywna_warstwa]
-        
-        if w.get('is_text') and not w.get('edycja_maski'):
-            w.pop('is_text', None)
-            
+        if not w.get('edycja_maski'): self.rasteryzuj_warstwe(w)
         self.zatwierdz_podglad()
         self.zapisz_stan_do_historii()
         
         img = w['obraz']
         if img.mode != "RGBA": img = img.convert("RGBA")
-            
         r, g, b, a = img.split()
         rgb = Image.merge("RGB", (r, g, b))
         
@@ -1175,9 +1492,7 @@ class PyPhoto(ctk.CTk):
     def filtr_solaryzacja(self): self.nałoż_filtr("solarize")
     
     def zastosuj_wybrany_filtr(self, w):
-        if self.aktywna_warstwa == -1:
-            return
-            
+        if self.aktywna_warstwa == -1: return
         k = next((key for key in self.klucze_filtrow if self.t[key] == w), None)
         if k == "bw": self.filtr_szary()
         elif k == "blur": self.filtr_rozmycie()
@@ -1189,22 +1504,18 @@ class PyPhoto(ctk.CTk):
         elif k == "smooth": self.filtr_wygladzenie()
         elif k == "posterize": self.filtr_plakatowanie()
         elif k == "solarize": self.filtr_solaryzacja()
-        
         self.canvas.focus_set()
 
     def obroc_obraz(self):
         if not self.warstwy: return
         self.zatwierdz_podglad()
         self.zapisz_stan_do_historii()
-        
         for w in self.warstwy:
-            if w.get('is_text'): w.pop('is_text', None)
-            
+            self.rasteryzuj_warstwe(w)
             old_img_w = w['obraz'].width
             w['obraz'] = w['obraz'].rotate(-90, expand=True)
             if w.get('maska') is not None:
                 w['maska'] = w['maska'].rotate(-90, expand=True)
-            
             old_x = w.get('offset_x', 0)
             old_y = w.get('offset_y', 0)
             w['offset_x'] = old_y
@@ -1218,8 +1529,7 @@ class PyPhoto(ctk.CTk):
         self.zatwierdz_podglad()
         self.zapisz_stan_do_historii()
         w = self.warstwy[self.aktywna_warstwa]
-        if w.get('is_text'): w.pop('is_text', None)
-        
+        self.rasteryzuj_warstwe(w)
         w['obraz'] = ImageOps.mirror(w['obraz'])
         if w.get('maska') is not None:
             w['maska'] = ImageOps.mirror(w['maska'])
@@ -1230,8 +1540,7 @@ class PyPhoto(ctk.CTk):
         self.zatwierdz_podglad()
         self.zapisz_stan_do_historii()
         w = self.warstwy[self.aktywna_warstwa]
-        if w.get('is_text'): w.pop('is_text', None)
-        
+        self.rasteryzuj_warstwe(w)
         w['obraz'] = ImageOps.flip(w['obraz'])
         if w.get('maska') is not None:
             w['maska'] = ImageOps.flip(w['maska'])
@@ -1241,19 +1550,15 @@ class PyPhoto(ctk.CTk):
         if self.aktywna_warstwa == -1: return
         w = self.warstwy[self.aktywna_warstwa]
         if w.get('edycja_maski'): return
-        
         try:
             self.zatwierdz_podglad()
             self.zapisz_stan_do_historii()
             self.config(cursor="watch")
             self.update()
-            
-            if w.get('is_text'): w.pop('is_text', None)
-            
+            self.rasteryzuj_warstwe(w)
             wynik = remove(w['obraz'])
             if wynik.mode != "RGBA": wynik = wynik.convert("RGBA")
             w['obraz'] = wynik
-            
             self.komponuj_i_wyswietl()
         except Exception as e:
             messagebox.showerror(self.t["msg_err_title"], f"Błąd AI: {e}")
@@ -1264,7 +1569,6 @@ class PyPhoto(ctk.CTk):
         if not self.warstwy or not self.doc_size: return
         try:
             self.zatwierdz_podglad()
-            
             x = int(self.entry_x.get())
             y = int(self.entry_y.get())
             w = int(self.entry_w.get())
@@ -1274,20 +1578,15 @@ class PyPhoto(ctk.CTk):
             if w <= 0 or h <= 0: raise ValueError(self.t["err_dim"])
             x, y = max(0, x), max(0, y)
             w, h = min(w, img_w - x), min(h, img_h - y)
-            
             offset_x_change, offset_y_change = x, y
 
             self.zapisz_stan_do_historii()
-            
             for warstwa in self.warstwy: 
                 warstwa['offset_x'] -= offset_x_change
                 warstwa['offset_y'] -= offset_y_change
-                
             self.doc_size = (w, h)
-            
             self.ustaw_narzedzie(None)
             self.komponuj_i_wyswietl()
-            
         except ValueError as e:
             messagebox.showerror(self.t["err_val"], f"{self.t['err_val']} {e}")
         except Exception as e:
@@ -1300,10 +1599,63 @@ class PyPhoto(ctk.CTk):
         r_x = self.doc_size[0] / self.display_width
         r_y = self.doc_size[1] / self.display_height
         return int(rel_x * r_x), int(rel_y * r_y)
+        
+    def image_to_canvas_coords(self, i_x, i_y):
+        if not self.doc_size: return 0, 0
+        r_x = self.display_width / self.doc_size[0]
+        r_y = self.display_height / self.doc_size[1]
+        return int(i_x * r_x + self.canvas_img_x_offset), int(i_y * r_y + self.canvas_img_y_offset)
+
+    def is_point_near_object(self, px, py, w):
+        ox = w.get('offset_x', 0)
+        oy = w.get('offset_y', 0)
+        if w.get('is_object') and w['obj_typ'] == 'shape':
+            x1, y1, x2, y2 = w['obj_pts']
+            min_x, max_x = min(x1, x2) + ox, max(x1, x2) + ox
+            min_y, max_y = min(y1, y2) + oy, max(y1, y2) + oy
+            return (min_x - 15) <= px <= (max_x + 15) and (min_y - 15) <= py <= (max_y + 15)
+        elif w.get('is_object') and w['obj_typ'] == 'brush':
+            pts = w['obj_pts']
+            if not pts: return False
+            r = w['obj_size'] / 2
+            all_pts = [p for stroke in pts for p in stroke]
+            if not all_pts: return False
+            min_x = min(p[0] for p in all_pts) + ox - r - 10
+            max_x = max(p[0] for p in all_pts) + ox + r + 10
+            min_y = min(p[1] for p in all_pts) + oy - r - 10
+            max_y = max(p[1] for p in all_pts) + oy + r + 10
+            if not (min_x <= px <= max_x and min_y <= py <= max_y): return False
+            for pt in all_pts:
+                if self.dystans((px, py), (pt[0] + ox, pt[1] + oy)) < max(15, w['obj_size']/2):
+                    return True
+            return False
+        elif w.get('is_text'):
+            x1, y1 = w['text_x'] + ox, w['text_y'] + oy
+            approx_w = len(w['text_content']) * (w['text_size'] * 0.6)
+            approx_h = w['text_size'] * 1.2
+            return (x1 - 15) <= px <= (x1 + approx_w + 15) and (y1 - 15) <= py <= (y1 + approx_h + 15)
+        else:
+            bbox = w['obraz'].getbbox()
+            if bbox:
+                bx1, by1, bx2, by2 = bbox
+                x1, y1 = bx1 + ox, by1 + oy
+                x2, y2 = bx2 + ox, by2 + oy
+            else:
+                x1, y1 = ox, oy
+                x2, y2 = ox + w['obraz'].width, oy + w['obraz'].height
+                
+            if x1 <= px <= x2 and y1 <= py <= y2:
+                try:
+                    pixel = w['obraz'].getpixel((int(px - ox), int(py - oy)))
+                    if isinstance(pixel, tuple) and len(pixel) == 4:
+                        return pixel[3] > 0
+                    return True
+                except Exception:
+                    return True
+            return False
 
     def zastosuj_rysowanie(self, typ, end_x=None, end_y=None):
         self.zatwierdz_podglad()
-        
         w = None
         is_mask = False
         if self.aktywna_warstwa != -1 and self.warstwy:
@@ -1312,68 +1664,42 @@ class PyPhoto(ctk.CTk):
             
         if typ == 'brush':
             self.zapisz_stan_do_historii()
+            rozmiar = int(self.slider_size.get())
+            outline_color = self.get_rgba(self.color_outline)
+            real_pts = [self.canvas_to_image_coords(px, py) for px, py in self.draw_points]
             
             if w and is_mask and w.get('maska') is not None:
                 if w.get('is_text'): w.pop('is_text', None)
                 img = w['maska']
-                r, g, b = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-                fill_color = int(r * 0.299 + g * 0.587 + b * 0.114)
-                
+                r, g, b, a = outline_color
+                m_color = int(r * 0.299 + g * 0.587 + b * 0.114)
                 draw = ImageDraw.Draw(img)
-                rozmiar = int(self.slider_size.get())
-                ox = w.get('offset_x', 0)
-                oy = w.get('offset_y', 0)
-
+                ox, oy = w.get('offset_x', 0), w.get('offset_y', 0)
                 if len(self.draw_points) == 1:
-                    px, py = self.draw_points[0]
-                    rx, ry = self.canvas_to_image_coords(px, py)
-                    draw.ellipse([rx - ox - rozmiar//2, ry - oy - rozmiar//2, rx - ox + rozmiar//2, ry - oy + rozmiar//2], fill=fill_color)
+                    px, py = real_pts[0]
+                    draw.ellipse([px - ox - rozmiar//2, py - oy - rozmiar//2, px - ox + rozmiar//2, py - oy + rozmiar//2], fill=m_color)
                 elif len(self.draw_points) > 1:
-                    real_pts = []
-                    for px, py in self.draw_points:
-                        rx, ry = self.canvas_to_image_coords(px, py)
-                        real_pts.append((rx - ox, ry - oy))
-                    draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
-
+                    draw.line([(p[0]-ox, p[1]-oy) for p in real_pts], fill=m_color, width=rozmiar, joint="curve")
+                    
             elif w and w['nazwa'] == self.t["brush"] and not is_mask:
                 if w.get('is_text'): w.pop('is_text', None)
-                img = w['obraz']
-                fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
-                
-                draw = ImageDraw.Draw(img)
-                rozmiar = int(self.slider_size.get())
-                ox = w.get('offset_x', 0)
-                oy = w.get('offset_y', 0)
-
-                if len(self.draw_points) == 1:
-                    px, py = self.draw_points[0]
-                    rx, ry = self.canvas_to_image_coords(px, py)
-                    draw.ellipse([rx - ox - rozmiar//2, ry - oy - rozmiar//2, rx - ox + rozmiar//2, ry - oy + rozmiar//2], fill=fill_color)
-                elif len(self.draw_points) > 1:
-                    real_pts = []
-                    for px, py in self.draw_points:
-                        rx, ry = self.canvas_to_image_coords(px, py)
-                        real_pts.append((rx - ox, ry - oy))
-                    draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
-            
+                if w.get('is_object') and w['obj_typ'] == 'brush':
+                    w['obj_pts'].append(real_pts)
+                    self.narysuj_obiekt(w)
+                else:
+                    img = w['obraz']
+                    draw = ImageDraw.Draw(img)
+                    ox, oy = w.get('offset_x', 0), w.get('offset_y', 0)
+                    if len(self.draw_points) == 1:
+                        px, py = real_pts[0]
+                        draw.ellipse([px - ox - rozmiar//2, py - oy - rozmiar//2, px - ox + rozmiar//2, py - oy + rozmiar//2], fill=outline_color)
+                    elif len(self.draw_points) > 1:
+                        draw.line([(p[0]-ox, p[1]-oy) for p in real_pts], fill=outline_color, width=rozmiar, joint="curve")
             else:
                 img = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
-                draw = ImageDraw.Draw(img)
-                rozmiar = int(self.slider_size.get())
-                fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
-                
-                if len(self.draw_points) == 1:
-                    px, py = self.draw_points[0]
-                    rx, ry = self.canvas_to_image_coords(px, py)
-                    draw.ellipse([rx - rozmiar//2, ry - rozmiar//2, rx + rozmiar//2, ry + rozmiar//2], fill=fill_color)
-                elif len(self.draw_points) > 1:
-                    real_pts = [self.canvas_to_image_coords(px, py) for px, py in self.draw_points]
-                    draw.line(real_pts, fill=fill_color, width=rozmiar, joint="curve")
-                
                 nazwa = self.t["brush"]
                 idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
-                
-                self.warstwy.insert(idx, {
+                nowa_w = {
                     'nazwa': nazwa, 
                     'obraz': img,
                     'widoczna': True, 
@@ -1382,9 +1708,15 @@ class PyPhoto(ctk.CTk):
                     'maska': None, 
                     'edycja_maski': False, 
                     'offset_x': 0, 
-                    'offset_y': 0
-                })
-                
+                    'offset_y': 0,
+                    'is_object': True,
+                    'obj_typ': 'brush',
+                    'obj_pts': [real_pts],
+                    'obj_color': outline_color,
+                    'obj_size': rozmiar
+                }
+                self.narysuj_obiekt(nowa_w)
+                self.warstwy.insert(idx, nowa_w)
                 self.ustaw_aktywna_warstwe(idx)
                 
         elif typ == 'shape' and end_x and end_y:
@@ -1392,59 +1724,41 @@ class PyPhoto(ctk.CTk):
             rx2, ry2 = self.canvas_to_image_coords(end_x, end_y)
             shape_type = self.aktywny_ksztalt
             rozmiar = int(self.slider_size.get())
-            fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+            outline_color = self.get_rgba(self.color_outline)
+            fill_color = self.get_rgba(self.color_fill)
             
             sw = abs(rx2 - rx1)
             sh = abs(ry2 - ry1)
-            ox = min(rx1, rx2)
-            oy = min(ry1, ry2)
-            
             if sw < 2 and sh < 2: 
                 if self.temp_draw_id: self.canvas.delete(self.temp_draw_id)
                 return
 
             self.zapisz_stan_do_historii()
-
-            pad = rozmiar + 2
-            img = Image.new("RGBA", (sw + 2*pad, sh + 2*pad), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(img)
-            
-            box = [pad, pad, sw + pad, sh + pad]
-            
-            if shape_type == self.t["shape_rect"]:
-                draw.rectangle(box, outline=fill_color, width=rozmiar)
-            elif shape_type == self.t["shape_ellipse"]:
-                draw.ellipse(box, outline=fill_color, width=rozmiar)
-            elif shape_type == self.t["shape_line"]:
-                x1 = (rx1 - ox) + pad
-                y1 = (ry1 - oy) + pad
-                x2 = (rx2 - ox) + pad
-                y2 = (ry2 - oy) + pad
-                draw.line([x1, y1, x2, y2], fill=fill_color, width=rozmiar, joint="curve")
-            elif shape_type == self.t["shape_triangle"]:
-                pts = [(pad, sh + pad), (sw//2 + pad, pad), (sw + pad, sh + pad)]
-                draw.polygon(pts, outline=fill_color, width=rozmiar)
-            elif shape_type == self.t["shape_rounded"]:
-                radius = min(sw, sh) // 5
-                draw.rounded_rectangle(box, radius=radius, outline=fill_color, width=rozmiar)
-                
             if self.temp_draw_id: self.canvas.delete(self.temp_draw_id)
             
             nazwa = f"K: {shape_type[:5]}"
             idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
             
-            self.warstwy.insert(idx, {
+            nowa_w = {
                 'nazwa': nazwa, 
-                'obraz': img,
+                'obraz': Image.new("RGBA", self.doc_size, (0, 0, 0, 0)),
                 'widoczna': True, 
                 'krycie': 1.0, 
                 'tryb': 'Normal', 
                 'maska': None, 
                 'edycja_maski': False, 
-                'offset_x': ox - pad, 
-                'offset_y': oy - pad
-            })
-            
+                'offset_x': 0, 
+                'offset_y': 0,
+                'is_object': True,
+                'obj_typ': 'shape',
+                'shape_type': shape_type,
+                'obj_pts': [rx1, ry1, rx2, ry2],
+                'obj_color': outline_color,
+                'obj_fill_color': fill_color,
+                'obj_size': rozmiar
+            }
+            self.narysuj_obiekt(nowa_w)
+            self.warstwy.insert(idx, nowa_w)
             self.ustaw_aktywna_warstwe(idx)
             self.ustaw_narzedzie('move')
             
@@ -1454,144 +1768,126 @@ class PyPhoto(ctk.CTk):
         if self.aktywna_warstwa == -1: return
         self.zatwierdz_podglad()
         self.zapisz_stan_do_historii()
-        
         w = self.warstwy[self.aktywna_warstwa]
-        
-        if not w.get('edycja_maski') and w.get('is_text'): w.pop('is_text', None)
         
         layer_x = x - w.get('offset_x', 0)
         layer_y = y - w.get('offset_y', 0)
-        
         is_mask = w.get('edycja_maski', False)
+        
         if is_mask and w.get('maska') is not None:
             img = w['maska']
-            r, g, b = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            r, g, b, a = self.get_rgba(self.color_outline)
             fill_color = int(r * 0.299 + g * 0.587 + b * 0.114)
-        else:
-            img = w['obraz']
-            fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+            ImageDraw.floodfill(img, (layer_x, layer_y), fill_color)
+            self.komponuj_i_wyswietl()
+            return
 
-        ImageDraw.floodfill(img, (layer_x, layer_y), fill_color)
-        self.komponuj_i_wyswietl()
-
-    def zmien_czcionke_tekstu(self, wartosc):
-        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
-            self.zapisz_stan_do_historii()
-            self.warstwy[self.aktywna_warstwa]['text_font'] = wartosc
+        if w.get('is_text'):
+            w['text_color'] = self.get_rgba(self.color_outline)
             self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
             self.komponuj_i_wyswietl()
-
-    def zmien_rozmiar_tekstu(self, wartosc):
-        if self.aktywna_warstwa != -1 and self.warstwy[self.aktywna_warstwa].get('is_text'):
-            if not getattr(self, 'text_resize_started', False):
-                self.zapisz_stan_do_historii()
-                self.text_resize_started = True
-            self.warstwy[self.aktywna_warstwa]['text_size'] = int(wartosc)
-            self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
-            self.komponuj_i_wyswietl()
-
-    def zatwierdz_rozmiar_tekstu(self):
-        self.text_resize_started = False
-
-    def renderuj_warstwe_tekstu(self, idx):
-        w = self.warstwy[idx]
-        if not w.get('is_text'): return
-        
-        pusta = Image.new("RGBA", self.doc_size, (0, 0, 0, 0))
-        draw = ImageDraw.Draw(pusta)
-        
-        font_name = w.get('text_font', 'Arial')
-        font = None
-        
-        try_paths = [
-            font_name,
-            font_name + ".ttf", 
-            font_name + ".ttc", 
-            font_name.lower() + ".ttf",
-            font_name.replace(" ", "") + ".ttf",
-            font_name.replace(" ", "") + ".ttc"
-        ]
-        
-        base_dirs = [""]
-        if sys.platform == "darwin":
-            base_dirs += ["/Library/Fonts/", "/System/Library/Fonts/", "/System/Library/Fonts/Supplemental/", os.path.expanduser("~/Library/Fonts/")]
-        elif sys.platform == "win32":
-            base_dirs += ["C:\\Windows\\Fonts\\"]
-        else:
-            base_dirs += ["/usr/share/fonts/truetype/", "/usr/share/fonts/"]
+            return
             
-        for p in try_paths:
-            for bd in base_dirs:
-                try:
-                    font = ImageFont.truetype(os.path.join(bd, p), size=w['text_size'])
-                    break
-                except: pass
-            if font: break
-                
-        if not font:
-            try: font = ImageFont.truetype("arial.ttf", size=w['text_size'])
-            except: 
-                try: font = ImageFont.truetype("Arial.ttf", size=w['text_size'])
-                except: font = ImageFont.load_default()
-        
-        draw.text((w['text_x'], w['text_y']), w['text_content'], fill=w['text_color'], font=font)
-        w['obraz'] = pusta
-
-    def wstaw_tekst(self, x, y):
-        tekst = simpledialog.askstring("Tekst", "Wpisz tekst:")
-        if not tekst: return self.ustaw_narzedzie('text')
-        
-        self.zatwierdz_podglad()
-        self.zapisz_stan_do_historii()
-        
-        rx, ry = self.canvas_to_image_coords(x, y)
-        nazwa = f"T: {tekst[:8]}"
-        idx = self.aktywna_warstwa + 1 if self.aktywna_warstwa != -1 else 0
-        fill_color = tuple(int(self.current_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (255,)
-        rozmiar_czcionki = int(self.slider_font_size.get())
-        wybrana_czcionka = self.combo_font.get()
-        
-        self.warstwy.insert(idx, {
-            'nazwa': nazwa, 
-            'obraz': Image.new("RGBA", self.doc_size, (0, 0, 0, 0)),
-            'widoczna': True, 
-            'krycie': 1.0, 
-            'tryb': 'Normal', 
-            'maska': None, 
-            'edycja_maski': False, 
-            'offset_x': 0, 
-            'offset_y': 0,
-            'is_text': True,
-            'text_content': tekst,
-            'text_x': rx,
-            'text_y': ry,
-            'text_color': fill_color,
-            'text_size': rozmiar_czcionki,
-            'text_font': wybrana_czcionka
-        })
-        
-        self.renderuj_warstwe_tekstu(idx)
-        self.ustaw_aktywna_warstwe(idx)
-        self.ustaw_narzedzie('move')
+        if w.get('is_object'):
+            if w['obj_typ'] == 'brush':
+                w['obj_color'] = self.get_rgba(self.color_outline)
+            elif w['obj_typ'] == 'shape':
+                w['obj_fill_color'] = self.get_rgba(self.color_outline)
+                hex_fill = self.color_outline
+                self.color_fill = hex_fill
+                self.btn_color_fill.configure(text=self.t["color_fill"], text_color=hex_fill, border_color=hex_fill)
+            self.narysuj_obiekt(w)
+            self.komponuj_i_wyswietl()
+            return
+            
+        self.rasteryzuj_warstwe(w)
+        img = w['obraz']
+        fill_color = self.get_rgba(self.color_outline)
+        ImageDraw.floodfill(img, (layer_x, layer_y), fill_color)
         self.komponuj_i_wyswietl()
 
     def on_canvas_press(self, event):
         if not self.aktywne_narzedzie or not self.doc_size: return
-        
-        if self.aktywna_warstwa == -1 and self.aktywne_narzedzie in ['move', 'fill']: 
-            return
-            
         self.zatwierdz_podglad()
         x, y = event.x, event.y
         self.last_x, self.last_y = x, y
 
         if self.aktywne_narzedzie == 'move':
+            rx, ry = self.canvas_to_image_coords(x, y)
+            w = self.warstwy[self.aktywna_warstwa] if self.aktywna_warstwa != -1 else None
+            self.akcja_myszy = None
+            
+            if w and w['widoczna']:
+                ox, oy = w.get('offset_x', 0), w.get('offset_y', 0)
+                if (w.get('is_object') and w['obj_typ'] in ['shape', 'brush']) or w.get('is_text'):
+                    if w.get('is_text'):
+                        x1, y1 = w['text_x'], w['text_y']
+                        approx_w = len(w['text_content']) * (w['text_size'] * 0.6)
+                        approx_h = w['text_size'] * 1.2
+                        x2, y2 = x1 + approx_w, y1 + approx_h
+                    elif w.get('is_object') and w['obj_typ'] == 'brush':
+                        all_pts = [p for stroke in w['obj_pts'] for p in stroke]
+                        if all_pts:
+                            r_b = w['obj_size'] / 2
+                            x1 = min(p[0] for p in all_pts) - r_b
+                            y1 = min(p[1] for p in all_pts) - r_b
+                            x2 = max(p[0] for p in all_pts) + r_b
+                            y2 = max(p[1] for p in all_pts) + r_b
+                        else:
+                            x1, y1, x2, y2 = 0, 0, 0, 0
+                    else:
+                        x1, y1, x2, y2 = w['obj_pts']
+
+                    cx1, cy1 = self.image_to_canvas_coords(x1+ox, y1+oy)
+                    cx2, cy2 = self.image_to_canvas_coords(x2+ox, y2+oy)
+                    
+                    t = 12
+                    if math.hypot(x - cx1, y - cy1) < t: self.akcja_myszy = 'sel_resize_tl'
+                    elif math.hypot(x - cx2, y - cy1) < t: self.akcja_myszy = 'sel_resize_tr'
+                    elif math.hypot(x - cx1, y - cy2) < t: self.akcja_myszy = 'sel_resize_bl'
+                    elif math.hypot(x - cx2, y - cy2) < t: self.akcja_myszy = 'sel_resize_br'
+                    elif math.hypot(x - (cx1+cx2)/2, y - cy1) < t: self.akcja_myszy = 'sel_resize_t'
+                    elif math.hypot(x - (cx1+cx2)/2, y - cy2) < t: self.akcja_myszy = 'sel_resize_b'
+                    elif math.hypot(x - cx1, y - (cy1+cy2)/2) < t: self.akcja_myszy = 'sel_resize_l'
+                    elif math.hypot(x - cx2, y - (cy1+cy2)/2) < t: self.akcja_myszy = 'sel_resize_r'
+
+            if not self.akcja_myszy:
+                if w and w['widoczna'] and self.is_point_near_object(rx, ry, w):
+                    self.akcja_myszy = 'sel_move'
+                else:
+                    znaleziono = False
+                    for i in reversed(range(len(self.warstwy))):
+                        if self.warstwy[i]['widoczna'] and self.is_point_near_object(rx, ry, self.warstwy[i]):
+                            self.ustaw_aktywna_warstwe(i)
+                            w = self.warstwy[i]
+                            self.akcja_myszy = 'sel_move'
+                            znaleziono = True
+                            break
+                    if not znaleziono:
+                        self.akcja_myszy = 'sel_move' 
+            
             self.zapisz_stan_do_historii()
             self.move_start_x = x
             self.move_start_y = y
-            w = self.warstwy[self.aktywna_warstwa]
-            self.move_start_offset_x = w.get('offset_x', 0)
-            self.move_start_offset_y = w.get('offset_y', 0)
+            if w:
+                self.move_start_offset_x = w.get('offset_x', 0)
+                self.move_start_offset_y = w.get('offset_y', 0)
+                if w.get('is_text'):
+                    self.move_start_obj_pts = (w['text_x'], w['text_y'], w['text_size'])
+                elif w.get('is_object'):
+                    if w['obj_typ'] == 'shape':
+                        self.move_start_obj_pts = list(w['obj_pts'])
+                    elif w['obj_typ'] == 'brush':
+                        self.move_start_obj_pts = [[(p[0], p[1]) for p in stroke] for stroke in w['obj_pts']]
+                        all_pts = [p for s in w['obj_pts'] for p in s]
+                        if all_pts:
+                            self.move_start_brush_bbox = [
+                                min(p[0] for p in all_pts), min(p[1] for p in all_pts),
+                                max(p[0] for p in all_pts), max(p[1] for p in all_pts)
+                            ]
+                        else:
+                            self.move_start_brush_bbox = [0,0,0,0]
+                
         elif self.aktywne_narzedzie == 'crop':
             if not self.rect_coords: 
                 self.akcja_myszy = 'draw'
@@ -1601,7 +1897,6 @@ class PyPhoto(ctk.CTk):
                 xm, xx = min(x1, x2), max(x1, x2)
                 ym, yx = min(y1, y2), max(y1, y2)
                 self.rect_coords = [xm, ym, xx, yx]
-                
                 t = 15
                 if abs(x - xm) < t and abs(y - ym) < t: self.akcja_myszy = 'resize_tl'
                 elif abs(x - xx) < t and abs(y - ym) < t: self.akcja_myszy = 'resize_tr'
@@ -1620,41 +1915,115 @@ class PyPhoto(ctk.CTk):
         elif self.aktywne_narzedzie == 'brush': 
             self.draw_points = [(x, y)]
         elif self.aktywne_narzedzie == 'fill':
+            if self.aktywna_warstwa == -1: return
             rx, ry = self.canvas_to_image_coords(x, y)
             self.zastosuj_wypelnienie(rx, ry)
         elif self.aktywne_narzedzie == 'text': 
             self.wstaw_tekst(x, y)
         elif self.aktywne_narzedzie == 'shape': 
             shape_type = self.aktywny_ksztalt
-            color = self.get_draw_color()
+            outline_c = self.color_outline
+            fill_c = self.color_fill if self.color_fill else ""
             width = int(self.slider_size.get())
-            if shape_type == self.t["shape_rect"] or shape_type == self.t["shape_rounded"]:
-                self.temp_draw_id = self.canvas.create_rectangle(x,y,x,y, outline=color, width=width)
-            elif shape_type == self.t["shape_ellipse"]:
-                self.temp_draw_id = self.canvas.create_oval(x,y,x,y, outline=color, width=width)
-            elif shape_type == self.t["shape_line"]:
-                self.temp_draw_id = self.canvas.create_line(x,y,x,y, fill=color, width=width, capstyle=tk.ROUND)
-            elif shape_type == self.t["shape_triangle"]:
-                self.temp_draw_id = self.canvas.create_polygon(x,y,x,y,x,y, outline=color, fill="", width=width)
+            if shape_type in [self.t["shape_rect"], TEXTS["pl"]["shape_rect"], TEXTS["en"]["shape_rect"], self.t["shape_rounded"], TEXTS["pl"]["shape_rounded"], TEXTS["en"]["shape_rounded"]]:
+                self.temp_draw_id = self.canvas.create_rectangle(x,y,x,y, outline=outline_c, fill=fill_c, width=width)
+            elif shape_type in [self.t["shape_ellipse"], TEXTS["pl"]["shape_ellipse"], TEXTS["en"]["shape_ellipse"]]:
+                self.temp_draw_id = self.canvas.create_oval(x,y,x,y, outline=outline_c, fill=fill_c, width=width)
+            elif shape_type in [self.t["shape_line"], TEXTS["pl"]["shape_line"], TEXTS["en"]["shape_line"]]:
+                self.temp_draw_id = self.canvas.create_line(x,y,x,y, fill=outline_c, width=width, capstyle=tk.ROUND)
+            elif shape_type in [self.t["shape_triangle"], TEXTS["pl"]["shape_triangle"], TEXTS["en"]["shape_triangle"]]:
+                self.temp_draw_id = self.canvas.create_polygon(x,y,x,y,x,y, outline=outline_c, fill=fill_c, width=width)
 
     def on_canvas_drag(self, event):
         if not self.aktywne_narzedzie or not self.doc_size: return
-        
-        if self.aktywna_warstwa == -1 and self.aktywne_narzedzie in ['move']: 
-            return
-            
         x, y = event.x, event.y
-        
         if self.aktywne_narzedzie == 'move':
+            if self.aktywna_warstwa == -1 or not self.akcja_myszy: return
             dx = x - self.move_start_x
             dy = y - self.move_start_y
-            r_x = self.doc_size[0] / self.display_width
-            r_y = self.doc_size[1] / self.display_height
+            rx, ry = self.canvas_to_image_coords(x, y)
+            w = self.warstwy[self.aktywna_warstwa]
+            ox, oy = w.get('offset_x', 0), w.get('offset_y', 0)
+            rel_x, rel_y = rx - ox, ry - oy
             
-            self.warstwy[self.aktywna_warstwa]['offset_x'] = self.move_start_offset_x + int(dx * r_x)
-            self.warstwy[self.aktywna_warstwa]['offset_y'] = self.move_start_offset_y + int(dy * r_y)
-            self.komponuj_i_wyswietl()
-            
+            if self.akcja_myszy == 'sel_move':
+                r_x = self.doc_size[0] / self.display_width
+                r_y = self.doc_size[1] / self.display_height
+                real_dx = dx * r_x
+                real_dy = dy * r_y
+                if w.get('is_text'):
+                    w['text_x'] = self.move_start_obj_pts[0] + real_dx
+                    w['text_y'] = self.move_start_obj_pts[1] + real_dy
+                    self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+                elif w.get('is_object') and w.get('obj_typ') == 'shape':
+                    w['obj_pts'] = [
+                        self.move_start_obj_pts[0] + real_dx, self.move_start_obj_pts[1] + real_dy,
+                        self.move_start_obj_pts[2] + real_dx, self.move_start_obj_pts[3] + real_dy
+                    ]
+                    self.narysuj_obiekt(w)
+                elif w.get('is_object') and w.get('obj_typ') == 'brush':
+                    w['obj_pts'] = [[(p[0] + real_dx, p[1] + real_dy) for p in stroke] for stroke in self.move_start_obj_pts]
+                    self.narysuj_obiekt(w)
+                else:
+                    w['offset_x'] = self.move_start_offset_x + int(dx * r_x)
+                    w['offset_y'] = self.move_start_offset_y + int(dy * r_y)
+                self.komponuj_i_wyswietl()
+                
+            elif self.akcja_myszy.startswith('sel_resize_'):
+                direction = self.akcja_myszy.split('_')[-1]
+                if w.get('is_object') and w.get('obj_typ') == 'shape':
+                    px_list = list(self.move_start_obj_pts)
+                    x_coords, y_coords = [px_list[0], px_list[2]], [px_list[1], px_list[3]]
+                    min_x_idx, max_x_idx = (0, 2) if x_coords[0] <= x_coords[1] else (2, 0)
+                    min_y_idx, max_y_idx = (1, 3) if y_coords[0] <= y_coords[1] else (3, 1)
+
+                    if 'l' in direction: px_list[min_x_idx] = rel_x
+                    if 'r' in direction: px_list[max_x_idx] = rel_x
+                    if 't' in direction: px_list[min_y_idx] = rel_y
+                    if 'b' in direction: px_list[max_y_idx] = rel_y
+                    
+                    w['obj_pts'] = px_list
+                    self.narysuj_obiekt(w)
+                    self.komponuj_i_wyswietl()
+                    
+                elif w.get('is_object') and w.get('obj_typ') == 'brush':
+                    bx1, by1, bx2, by2 = self.move_start_brush_bbox
+                    nbx1, nby1, nbx2, nby2 = bx1, by1, bx2, by2
+                    
+                    if 'l' in direction: nbx1 = rel_x
+                    if 'r' in direction: nbx2 = rel_x
+                    if 't' in direction: nby1 = rel_y
+                    if 'b' in direction: nby2 = rel_y
+                    
+                    old_w = bx2 - bx1
+                    old_h = by2 - by1
+                    new_w = nbx2 - nbx1
+                    new_h = nby2 - nby1
+                    
+                    if old_w == 0: old_w = 1
+                    if old_h == 0: old_h = 1
+                    
+                    new_pts = []
+                    for stroke in self.move_start_obj_pts:
+                        new_stroke = []
+                        for px, py in stroke:
+                            nx = nbx1 + (px - bx1) * (new_w / old_w)
+                            ny = nby1 + (py - by1) * (new_h / old_h)
+                            new_stroke.append((nx, ny))
+                        new_pts.append(new_stroke)
+                    w['obj_pts'] = new_pts
+                    self.narysuj_obiekt(w)
+                    self.komponuj_i_wyswietl()
+                    
+                elif w.get('is_text'):
+                    r_y = self.doc_size[1] / self.display_height
+                    real_dy = dy * r_y
+                    new_size = int(self.move_start_obj_pts[2] + (real_dy if 'b' in direction else -real_dy))
+                    w['text_size'] = max(10, new_size)
+                    self.slider_font_size.set(w['text_size'])
+                    self.renderuj_warstwe_tekstu(self.aktywna_warstwa)
+                    self.komponuj_i_wyswietl()
+
         elif self.aktywne_narzedzie == 'crop' and self.akcja_myszy:
             dx, dy = x - self.last_x, y - self.last_y
             if self.akcja_myszy == 'draw': 
@@ -1686,12 +2055,12 @@ class PyPhoto(ctk.CTk):
             self.odswiez_pola_kadrowania()
             
         elif self.aktywne_narzedzie == 'brush':
-            self.canvas.create_line(self.last_x, self.last_y, x, y, fill=self.get_draw_color(), width=self.slider_size.get(), capstyle=tk.ROUND, smooth=True)
+            self.canvas.create_line(self.last_x, self.last_y, x, y, fill=self.color_outline, width=self.slider_size.get(), capstyle=tk.ROUND, smooth=True)
             self.draw_points.append((x, y))
             self.last_x, self.last_y = x, y
         elif self.aktywne_narzedzie == 'shape' and self.temp_draw_id:
             shape_type = self.aktywny_ksztalt
-            if shape_type == self.t["shape_triangle"]:
+            if shape_type in [self.t["shape_triangle"], TEXTS["pl"]["shape_triangle"], TEXTS["en"]["shape_triangle"]]:
                 self.canvas.coords(self.temp_draw_id, self.last_x, y, (self.last_x + x)/2, self.last_y, x, y)
             else:
                 self.canvas.coords(self.temp_draw_id, self.last_x, self.last_y, x, y)
@@ -1724,14 +2093,11 @@ class PyPhoto(ctk.CTk):
         l = 20
         c = 'white'
         tw = 3
-        
         self.canvas.create_line(xm, ym+l, xm, ym, xm+l, ym, fill=c, width=tw, tags="crop_element")
         self.canvas.create_line(xx-l, ym, xx, ym, xx, ym+l, fill=c, width=tw, tags="crop_element")
         self.canvas.create_line(xm, yx-l, xm, yx, xm+l, yx, fill=c, width=tw, tags="crop_element")
         self.canvas.create_line(xx-l, yx, xx, yx, xx, yx-l, fill=c, width=tw, tags="crop_element")
-
-        mid_x = xm + w/2
-        mid_y = ym + h/2
+        mid_x, mid_y = xm + w/2, ym + h/2
         self.canvas.create_line(mid_x-l/2, ym, mid_x+l/2, ym, fill=c, width=tw, tags="crop_element") 
         self.canvas.create_line(mid_x-l/2, yx, mid_x+l/2, yx, fill=c, width=tw, tags="crop_element") 
         self.canvas.create_line(xm, mid_y-l/2, xm, mid_y+l/2, fill=c, width=tw, tags="crop_element") 
@@ -1741,38 +2107,34 @@ class PyPhoto(ctk.CTk):
         if not self.warstwy and narzedzie not in [None, 'crop']: return
         self.zatwierdz_podglad()
         self.canvas.delete("crop_element"); self.rect_coords = None; self.canvas.config(cursor="")
+        self.canvas.delete("sel_element")
         
         if self.aktywne_narzedzie == narzedzie:
             self.aktywne_narzedzie = None
             nazwa = self.t["none"]
-            if self.doc_size:
-                self.aktualizuj_wymiary_w_polach(0, 0, self.doc_size[0], self.doc_size[1])
+            if self.doc_size: self.aktualizuj_wymiary_w_polach(0, 0, self.doc_size[0], self.doc_size[1])
         else:
             self.aktywne_narzedzie = narzedzie
             if narzedzie == 'crop': 
                 self.canvas.config(cursor="cross")
                 nazwa = self.t["crop_on"]
                 if self.doc_size and hasattr(self, 'display_width'):
-                    x1 = self.canvas_img_x_offset
-                    y1 = self.canvas_img_y_offset
-                    x2 = self.canvas_img_x_offset + self.display_width
-                    y2 = self.canvas_img_y_offset + self.display_height
-                    self.rect_coords = [x1, y1, x2, y2]
+                    self.rect_coords = [self.canvas_img_x_offset, self.canvas_img_y_offset, self.canvas_img_x_offset + self.display_width, self.canvas_img_y_offset + self.display_height]
                     self.rysuj_ramke_na_plotnie()
                     self.odswiez_pola_kadrowania()
             elif narzedzie == 'brush': self.canvas.config(cursor="pencil"); nazwa = self.t["brush"]
             elif narzedzie == 'fill': self.canvas.config(cursor="tcross"); nazwa = self.t["fill"]
             elif narzedzie == 'text': self.canvas.config(cursor="xterm"); nazwa = self.t["text"]
             elif narzedzie == 'shape': self.canvas.config(cursor="crosshair"); nazwa = self.aktywny_ksztalt
-            elif narzedzie == 'move': self.canvas.config(cursor="fleur"); nazwa = self.t["move"]
+            elif narzedzie == 'move': 
+                self.canvas.config(cursor="fleur")
+                nazwa = self.t["move"]
+                self.komponuj_i_wyswietl()
             else: nazwa = self.t["none"]
             
         self.lbl_aktywne_narz.configure(text=f"{self.t['active_tool']} {nazwa}")
-        
-        if self.aktywne_narzedzie == 'crop':
-            self.btn_crop.configure(text=self.t["crop_off"], border_width=2)
-        else:
-            self.btn_crop.configure(text=self.t["crop_on"], border_width=1)
+        if self.aktywne_narzedzie == 'crop': self.btn_crop.configure(text=self.t["crop_off"], border_width=2)
+        else: self.btn_crop.configure(text=self.t["crop_on"], border_width=1)
 
     def przy_zmianie_rozmiaru(self, event):
         self.canvas.coords("help_text", event.width / 2, event.height / 2)
@@ -1795,7 +2157,23 @@ class PyPhoto(ctk.CTk):
                 messagebox.showinfo(self.t["msg_saved_title"], self.t["msg_saved"])
             except Exception as e:
                 messagebox.showerror(self.t["msg_err_title"], f"{self.t['err_save']} {e}")
-
+    
+    def wycentruj_tytul_okna(self, event=None):
+        if event and event.widget != self: 
+            return
+            
+        szerokosc = self.winfo_width()
+        if not hasattr(self, 'ost_szer_okna'): 
+            self.ost_szer_okna = 0
+            
+        if abs(szerokosc - self.ost_szer_okna) > 15:
+            self.ost_szer_okna = szerokosc
+            nazwa = "PyPhoto - Image Editor"
+            
+            ile_spacji = max(0, int((szerokosc / 2 - len(nazwa) * 3.5) / 4))
+            
+            self.wm_title(" " * ile_spacji + nazwa)
+            
 if __name__ == "__main__":
     aplikacja = PyPhoto()
     aplikacja.mainloop()
