@@ -979,14 +979,19 @@ class PyPhoto(ctk.CTk):
         
         elementy = [
             ("lbl_aktywne_narz", "active_tool"), ("btn_color_outline", "color_outline"),
-            ("btn_color_fill", "color_fill"), ("lbl_size", "size"), ("lbl_select_font", "select_font"),
-            ("lbl_font_size", "font_size"), ("lbl_adjust", "adjust"), ("lbl_brightness", "brightness"),
-            ("lbl_contrast", "contrast"), ("lbl_saturation", "saturation"), ("lbl_sharpness", "sharpness"),
-            ("lbl_scale", "scale"), ("lbl_exposure", "exposure"), ("lbl_white_balance", "white_balance"),
+            ("btn_color_fill", "color_fill"), ("lbl_size", "size"), 
+            ("lbl_roundness", "roundness"), ("lbl_bulge", "bulge"), 
+            ("lbl_select_font", "select_font"), ("lbl_font_size", "font_size"), 
+            ("lbl_adjust", "adjust"), ("lbl_brightness", "brightness"),
+            ("lbl_contrast", "contrast"), ("lbl_saturation", "saturation"), 
+            ("lbl_sharpness", "sharpness"), ("lbl_scale", "scale"), 
+            ("lbl_exposure", "exposure"), ("lbl_white_balance", "white_balance"),
             ("lbl_kadrowanie", "crop"), ("lbl_w", "width"), ("lbl_h", "height"),
-            ("btn_dokladne_crop", "crop_apply"), ("lbl_layers_title", "layers"), ("btn_add_layer", "layer_add"),
-            ("btn_insert_layer", "layer_insert"), ("btn_del_layer", "layer_del"), ("btn_add_mask", "mask_add"),
-            ("btn_del_mask", "mask_del"), ("lbl_blend", "blend"), ("lbl_opacity", "opacity"), ("text_label", "help")
+            ("btn_dokladne_crop", "crop_apply"), ("lbl_layers_title", "layers"), 
+            ("btn_add_layer", "layer_add"), ("btn_insert_layer", "layer_insert"), 
+            ("btn_del_layer", "layer_del"), ("btn_add_mask", "mask_add"),
+            ("btn_del_mask", "mask_del"), ("lbl_blend", "blend"), 
+            ("lbl_opacity", "opacity"), ("text_label", "help")
         ]
         for w_name, t_key in elementy:
             self._update_text(w_name, t_key)
